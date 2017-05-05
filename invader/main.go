@@ -4,43 +4,81 @@ package main
 
 import (
 	"log"
-	"time"
+	//"time"
 
 	"golang.org/x/mobile/app"
 	"golang.org/x/mobile/event/lifecycle"
+	"golang.org/x/mobile/event/mouse"
 	"golang.org/x/mobile/event/paint"
+	"golang.org/x/mobile/event/size"
+	"golang.org/x/mobile/event/touch"
+	"golang.org/x/mobile/gl"
 )
+
+type gameState struct {
+	width  int
+	height int
+	gl     gl.Context
+}
 
 func main() {
 	log.Print("main begin")
 
-	sec := time.Now()
+	game := &gameState{}
 
 	app.Main(func(a app.App) {
 		log.Print("app.Main begin")
 
-		sec = tick(sec, "app.Main")
+	LOOP:
 		for e := range a.Events() {
-			log.Printf("Some event: %v", e)
 			switch t := a.Filter(e).(type) {
 			case lifecycle.Event:
 				log.Printf("Lifecycle: %v", t)
+
+				if t.From > t.To && t.To == lifecycle.StageDead {
+					log.Printf("lifecycle down to dead")
+					break LOOP
+				}
+
+				if t.Crosses(lifecycle.StageAlive) == lifecycle.CrossOff {
+					log.Printf("lifecycle cross down alive")
+					break LOOP
+				}
+
+				switch t.Crosses(lifecycle.StageVisible) {
+				case lifecycle.CrossOn:
+					glc, isGL := t.DrawContext.(gl.Context)
+					if !isGL {
+						log.Printf("Lifecycle: visible: bad GL context")
+						continue LOOP
+					}
+					game.start(glc)
+					a.Send(paint.Event{}) // start drawing
+				case lifecycle.CrossOff:
+					game.stop()
+				}
+
 			case paint.Event:
-				if t.External {
+				if t.External || game.gl == nil {
 					// As we are actively painting as fast as
 					// we can (usually 60 FPS), skip any paint
 					// events sent by the system.
 					continue
 				}
 
-				log.Printf("Call OpenGL here: %v", t)
+				game.paint()
 				a.Publish()
 
 				// we request next paint event
 				// in order to draw as fast as possible
 				a.Send(paint.Event{})
+			case mouse.Event:
+				game.input(t.X, t.Y)
+			case touch.Event:
+				game.input(t.X, t.Y)
+			case size.Event:
+				game.resize(t.WidthPx, t.HeightPx)
 			}
-			sec = tick(sec, "range loop")
 		}
 
 		log.Print("app.Main end")
@@ -49,11 +87,28 @@ func main() {
 	log.Print("main end")
 }
 
-func tick(t time.Time, s string) time.Time {
-	n := time.Now()
-	if n.Second() == t.Second() {
-		return t
+func (game *gameState) resize(w, h int) {
+	if game.width != w || game.height != h {
+		log.Printf("resize: %d,%d", w, h)
 	}
-	log.Printf("tick: %s", s)
-	return n
+	game.width = w
+	game.height = h
+}
+
+func (game *gameState) input(x, y float32) {
+	log.Printf("input: %f,%f (%d x %d)", x, y, game.width, game.height)
+}
+
+func (game *gameState) start(glc gl.Context) {
+	log.Printf("start")
+	game.gl = glc
+}
+
+func (game *gameState) stop() {
+	log.Printf("stop")
+	game.gl = nil
+}
+
+func (game *gameState) paint() {
+	//log.Printf("paint: call OpenGL here")
 }
