@@ -4,7 +4,7 @@ package main
 
 import (
 	"log"
-	//"time"
+	"time"
 
 	"golang.org/x/mobile/app"
 	"golang.org/x/mobile/event/lifecycle"
@@ -25,6 +25,10 @@ func main() {
 	log.Print("main begin")
 
 	game := &gameState{}
+	var frames int
+	var paints int
+	sec := time.Now().Second()
+	slowPaint := true
 
 	app.Main(func(a app.App) {
 		log.Print("app.Main begin")
@@ -66,8 +70,24 @@ func main() {
 					continue
 				}
 
-				game.paint()
-				a.Publish()
+				paints++ // events
+
+				if now := time.Now().Second(); now != sec {
+					log.Printf("fps: %d, paints: %d", frames, paints)
+					frames = 0
+					paints = 0
+					sec = now
+				}
+
+				if !slowPaint || frames == 0 {
+					frames++ // draws
+					game.paint()
+					a.Publish()
+				}
+
+				if slowPaint {
+					time.Sleep(500 * time.Millisecond)
+				}
 
 				// we request next paint event
 				// in order to draw as fast as possible
