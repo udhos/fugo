@@ -11,36 +11,35 @@ QUICK START
     cd update-golang
     sudo ./update-golang.sh
 
-2\. Add ~/go/bin to your PATH
+2\. Install Android NDK
 
-    echo 'export PATH=$PATH:$HOME/go/bin' >> ~/.profile
-    . ~/.profile
+    Install with Android Studio:
+    https://developer.android.com/studio/install.html   
 
-3\. Install Android NDK
-
-    # Then point the env var NDK to your install
+    # Then point the env var NDK to your ndk-bundle
     # For example:
     echo 'export NDK=$HOME/Android/Sdk/ndk-bundle' >> ~/.profile
     . ~/.profile
 
-4\. Install gomobile
+3\. Install gomobile
 
-    go get go get golang.org/x/mobile/cmd/gomobile
+    go get golang.org/x/mobile/cmd/gomobile
     gomobile init -ndk $NDK
 
-5\. Get fugo
+4\. Get fugo
 
     go get github.com/udhos/fugo
 
-6\. Build for desktop
+5\. Build for desktop
 
     go install github.com/udhos/fugo/invader
 
-7\. Build for Android
+6\. Build for Android
 
     gomobile build -target=android github.com/udhos/fugo/invader
 
-8\. Push into Android device
+7\. Push into Android device
 
     gomobile install github.com/udhos/fugo/invader
 
+--xx--
