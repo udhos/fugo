@@ -4,6 +4,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"golang.org/x/mobile/app"
@@ -24,11 +25,13 @@ type gameState struct {
 func main() {
 	log.Print("main begin")
 
+	slowPaint := len(os.Args) > 1
+	log.Printf("slowPaint: %v", slowPaint)
+
 	game := &gameState{}
 	var frames int
 	var paints int
 	sec := time.Now().Second()
-	slowPaint := true
 
 	app.Main(func(a app.App) {
 		log.Print("app.Main begin")
