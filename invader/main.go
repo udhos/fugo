@@ -134,4 +134,8 @@ func (game *gameState) stop() {
 
 func (game *gameState) paint() {
 	//log.Printf("paint: call OpenGL here")
+	glc := game.gl // shortcut
+
+	glc.ClearColor(.5, .5, .5, 1)
+	glc.Clear(gl.COLOR_BUFFER_BIT)
 }
