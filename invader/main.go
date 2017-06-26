@@ -3,6 +3,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"log"
 	"os"
 	"time"
@@ -13,13 +14,18 @@ import (
 	"golang.org/x/mobile/event/paint"
 	"golang.org/x/mobile/event/size"
 	"golang.org/x/mobile/event/touch"
+	"golang.org/x/mobile/exp/f32"
+	"golang.org/x/mobile/exp/gl/glutil"
 	"golang.org/x/mobile/gl"
 )
 
 type gameState struct {
-	width  int
-	height int
-	gl     gl.Context
+	width    int
+	height   int
+	gl       gl.Context
+	program  gl.Program
+	buf      gl.Buffer
+	position gl.Attrib
 }
 
 func main() {
@@ -124,11 +130,33 @@ func (game *gameState) input(x, y float32) {
 
 func (game *gameState) start(glc gl.Context) {
 	log.Printf("start")
+
+	var err error
+	game.program, err = glutil.CreateProgram(glc, vertexShader, fragmentShader)
+	if err != nil {
+		log.Printf("start: error creating GL program: %v", err)
+		return
+	}
+
+	log.Printf("start: shader compiled")
+
+	game.buf = glc.CreateBuffer()
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.buf)
+	glc.BufferData(gl.ARRAY_BUFFER, triangleData, gl.STATIC_DRAW)
+
+	game.position = glc.GetAttribLocation(game.program, "position")
+
 	game.gl = glc
 }
 
 func (game *gameState) stop() {
 	log.Printf("stop")
+
+	glc := game.gl // shortcut
+
+	glc.DeleteProgram(game.program)
+	glc.DeleteBuffer(game.buf)
+
 	game.gl = nil
 }
 
@@ -136,6 +164,37 @@ func (game *gameState) paint() {
 	//log.Printf("paint: call OpenGL here")
 	glc := game.gl // shortcut
 
-	glc.ClearColor(.5, .5, .5, 1)
+	glc.ClearColor(.5, .5, .5, 1) // gray background
 	glc.Clear(gl.COLOR_BUFFER_BIT)
+
+	glc.UseProgram(game.program)
+
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.buf)
+	glc.EnableVertexAttribArray(game.position)
+	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+	glc.DrawArrays(gl.TRIANGLES, 0, vertexCount)
+	glc.DisableVertexAttribArray(game.position)
 }
+
+const (
+	coordsPerVertex = 3
+	vertexCount     = 3
+)
+
+var triangleData = f32.Bytes(binary.LittleEndian,
+	0.0, 0.4, 0.0, // top left
+	0.0, 0.0, 0.0, // bottom left
+	0.4, 0.0, 0.0, // bottom right
+)
+
+const vertexShader = `#version 100
+attribute vec4 position;
+void main() {
+	gl_Position = position;
+}`
+
+const fragmentShader = `#version 100
+precision mediump float;
+void main() {
+	gl_FragColor = vec4(0.8,0.8,0.8,1.0); // white
+}`
