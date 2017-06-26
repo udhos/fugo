@@ -35,14 +35,14 @@ QUICK START
 
 5\. Build for desktop
 
-    go install github.com/udhos/fugo/invader
+    go install github.com/udhos/fugo/demo/invader
 
 6\. Build for Android
 
-    gomobile build -target=android github.com/udhos/fugo/invader
+    gomobile build -target=android github.com/udhos/fugo/demo/invader
 
 7\. Push into Android device
 
-    gomobile install github.com/udhos/fugo/invader
+    gomobile install github.com/udhos/fugo/demo/invader
 
 --xx--

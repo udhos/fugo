@@ -61,11 +61,13 @@ build() {
     gomobile build -target=android $full
 
     msg now use this command do push to android device:
-    echo gomobile install github.com/udhos/fugo/invader
+    echo gomobile install $full
 }
 
 get honnef.co/go/simple/cmd/gosimple
 get honnef.co/go/tools/cmd/staticcheck
 get github.com/golang/lint/golint
 
-build invader
+build demo/triangle
+build demo/invader
+
