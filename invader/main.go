@@ -168,11 +168,15 @@ func (game *gameState) paint() {
 	glc.Clear(gl.COLOR_BUFFER_BIT)
 
 	glc.UseProgram(game.program)
+	glc.EnableVertexAttribArray(game.position)
 
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.buf)
-	glc.EnableVertexAttribArray(game.position)
+
+	// how to get data for location attribute within buffer
 	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+
 	glc.DrawArrays(gl.TRIANGLES, 0, vertexCount)
+
 	glc.DisableVertexAttribArray(game.position)
 }
 
