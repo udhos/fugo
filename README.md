@@ -37,6 +37,10 @@ QUICK START
 
     go install github.com/udhos/fugo/demo/invader
 
+You can test the desktop version by running 'invader':
+
+    $ invader slow ;# the slow parameter forces a very low frame rate
+
 6\. Build for Android
 
     gomobile build -target=android github.com/udhos/fugo/demo/invader
