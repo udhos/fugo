@@ -147,6 +147,8 @@ func (game *gameState) start(glc gl.Context) {
 	game.position = glc.GetAttribLocation(game.program, "position")
 
 	game.gl = glc
+
+	log.Printf("start: shader initialized")
 }
 
 func (game *gameState) stop() {
@@ -158,6 +160,8 @@ func (game *gameState) stop() {
 	glc.DeleteBuffer(game.buf)
 
 	game.gl = nil
+
+	log.Printf("stop: shader disposed")
 }
 
 func (game *gameState) paint() {
