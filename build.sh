@@ -7,23 +7,11 @@ msg() {
     echo >&2 $step. $*
 }
 
-die() {
-    msg $*
-    exit 1
-}
-
 get() {
     i=$1
     msg fetching $i
     go get $i
     msg fetching $i - done
-}
-
-#!/bin/bash
-
-me=`basename $0`
-msg() {
-    echo >&2 $me: $*
 }
 
 pkg=github.com/udhos/fugo
