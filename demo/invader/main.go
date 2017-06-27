@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/udhos/goglmath"
+
 	"golang.org/x/mobile/app"
 	"golang.org/x/mobile/event/lifecycle"
 	"golang.org/x/mobile/event/mouse"
@@ -26,6 +28,9 @@ type gameState struct {
 	program  gl.Program
 	buf      gl.Buffer
 	position gl.Attrib
+	P        gl.Uniform // projection mat4 uniform
+	proj     goglmath.Matrix4
+	aspect   float64
 }
 
 func main() {
@@ -122,6 +127,15 @@ func (game *gameState) resize(w, h int) {
 	}
 	game.width = w
 	game.height = h
+
+	glc := game.gl // shortcut
+	if glc == nil {
+		return
+	}
+
+	glc.Viewport(0, 0, w, h)
+	game.aspect = float64(w) / float64(h)
+	goglmath.SetOrthoMatrix(&game.proj, -game.aspect, game.aspect, -1, 1, -1, 1)
 }
 
 func (game *gameState) input(x, y float32) {
@@ -145,6 +159,9 @@ func (game *gameState) start(glc gl.Context) {
 	glc.BufferData(gl.ARRAY_BUFFER, triangleData, gl.STATIC_DRAW)
 
 	game.position = glc.GetAttribLocation(game.program, "position")
+	game.P = glc.GetUniformLocation(game.program, "P")
+
+	glc.ClearColor(.5, .5, .5, 1) // gray background
 
 	game.gl = glc
 
@@ -165,14 +182,14 @@ func (game *gameState) stop() {
 }
 
 func (game *gameState) paint() {
-	//log.Printf("paint: call OpenGL here")
 	glc := game.gl // shortcut
 
-	glc.ClearColor(.5, .5, .5, 1) // gray background
-	glc.Clear(gl.COLOR_BUFFER_BIT)
+	glc.Clear(gl.COLOR_BUFFER_BIT) // draw ClearColor background
 
 	glc.UseProgram(game.program)
 	glc.EnableVertexAttribArray(game.position)
+
+	glc.UniformMatrix4fv(game.P, game.proj.Data())
 
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.buf)
 
@@ -190,15 +207,16 @@ const (
 )
 
 var triangleData = f32.Bytes(binary.LittleEndian,
-	0.0, 0.4, 0.0, // top left
+	0.0, 1.0, 0.0, // top left
 	0.0, 0.0, 0.0, // bottom left
-	0.4, 0.0, 0.0, // bottom right
+	1.0, 0.0, 0.0, // bottom right
 )
 
 const vertexShader = `#version 100
 attribute vec4 position;
+uniform mat4 P;
 void main() {
-	gl_Position = position;
+	gl_Position = P * position;
 }`
 
 const fragmentShader = `#version 100

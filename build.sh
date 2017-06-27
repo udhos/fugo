@@ -55,6 +55,7 @@ build() {
 get honnef.co/go/simple/cmd/gosimple
 get honnef.co/go/tools/cmd/staticcheck
 get github.com/golang/lint/golint
+get github.com/udhos/goglmath
 
 build demo/triangle
 build demo/invader
