@@ -213,10 +213,10 @@ var triangleData = f32.Bytes(binary.LittleEndian,
 )
 
 const vertexShader = `#version 100
-attribute vec4 position;
+attribute vec3 position;
 uniform mat4 P;
 void main() {
-	gl_Position = P * position;
+	gl_Position = P * vec4(position,1.0);
 }`
 
 const fragmentShader = `#version 100
