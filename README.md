@@ -7,7 +7,7 @@ fugo - fun with Go
 QUICK START
 ===========
 
-1) Install latest Go
+1\. Install latest Go
 
 There are many other ways, this is a quick recipe:
 
@@ -15,7 +15,7 @@ There are many other ways, this is a quick recipe:
     cd update-golang
     sudo ./update-golang.sh
 
-2) Install Android NDK
+2\. Install Android NDK
 
     Install with Android Studio:
     https://developer.android.com/studio/install.html   
@@ -25,20 +25,20 @@ Then point the env var NDK to your ndk-bundle. For example:
     echo 'export NDK=$HOME/Android/Sdk/ndk-bundle' >> ~/.profile
     . ~/.profile
 
-3) Install gomobile
+3\. Install gomobile
 
 Recipe:
 
     go get golang.org/x/mobile/cmd/gomobile
     gomobile init -ndk $NDK
 
-4) Get fugo
+4\. Get fugo
 
 Recipe:
 
     go get github.com/udhos/fugo
 
-5) Build for desktop
+5\. Build for desktop
 
 Recipe:
 
@@ -48,7 +48,7 @@ Hint: You can test the desktop version by running 'invader':
 
     $ invader slow ;# the slow parameter forces a very low frame rate
 
-6) Build for Android
+6\. Build for Android
 
 Recipe:
 
@@ -58,7 +58,7 @@ Hint: Use 'gomobile build -x' to see what the build is doing.
 
     $ gomobile build -x github.com/udhos/fugo/demo/invader
 
-7) Push into Android device
+7\. Push into Android device
 
 Recipe:
 
