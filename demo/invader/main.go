@@ -4,6 +4,7 @@ package main
 
 import (
 	"encoding/binary"
+	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/udhos/goglmath"
 
 	"golang.org/x/mobile/app"
+	"golang.org/x/mobile/asset"
 	"golang.org/x/mobile/event/lifecycle"
 	"golang.org/x/mobile/event/mouse"
 	"golang.org/x/mobile/event/paint"
@@ -22,15 +24,17 @@ import (
 )
 
 type gameState struct {
-	width    int
-	height   int
-	gl       gl.Context
-	program  gl.Program
-	buf      gl.Buffer
-	position gl.Attrib
-	P        gl.Uniform // projection mat4 uniform
-	proj     goglmath.Matrix4
-	aspect   float64
+	width      int
+	height     int
+	gl         gl.Context
+	program    gl.Program
+	buf        gl.Buffer
+	position   gl.Attrib
+	P          gl.Uniform // projection mat4 uniform
+	proj       goglmath.Matrix4
+	aspect     float64
+	shaderVert string
+	shaderFrag string
 }
 
 func main() {
@@ -43,6 +47,20 @@ func main() {
 	var frames int
 	var paints int
 	sec := time.Now().Second()
+
+	vert, errVert := loadFull("shader.vert")
+	if errVert != nil {
+		log.Printf("load vertex shader: %v", errVert)
+		return
+	}
+	game.shaderVert = string(vert)
+
+	frag, errFrag := loadFull("shader.frag")
+	if errFrag != nil {
+		log.Printf("load fragment shader: %v", errFrag)
+		return
+	}
+	game.shaderFrag = string(frag)
 
 	app.Main(func(a app.App) {
 		log.Print("app.Main begin")
@@ -121,6 +139,20 @@ func main() {
 	log.Print("main end")
 }
 
+func loadFull(name string) ([]byte, error) {
+	f, errOpen := asset.Open(name)
+	if errOpen != nil {
+		return nil, errOpen
+	}
+	defer f.Close()
+	buf, errRead := ioutil.ReadAll(f)
+	if errRead != nil {
+		return nil, errRead
+	}
+	log.Printf("loaded: %s (%d bytes)", name, len(buf))
+	return buf, nil
+}
+
 func (game *gameState) resize(w, h int) {
 	if game.width != w || game.height != h {
 		log.Printf("resize: %d,%d", w, h)
@@ -146,7 +178,7 @@ func (game *gameState) start(glc gl.Context) {
 	log.Printf("start")
 
 	var err error
-	game.program, err = glutil.CreateProgram(glc, vertexShader, fragmentShader)
+	game.program, err = glutil.CreateProgram(glc, game.shaderVert, game.shaderFrag)
 	if err != nil {
 		log.Printf("start: error creating GL program: %v", err)
 		return
@@ -211,16 +243,3 @@ var triangleData = f32.Bytes(binary.LittleEndian,
 	0.0, 0.0, 0.0, // bottom left
 	1.0, 0.0, 0.0, // bottom right
 )
-
-const vertexShader = `#version 100
-attribute vec3 position;
-uniform mat4 P;
-void main() {
-	gl_Position = P * vec4(position,1.0);
-}`
-
-const fragmentShader = `#version 100
-precision mediump float;
-void main() {
-	gl_FragColor = vec4(0.8,0.8,0.8,1.0); // white
-}`

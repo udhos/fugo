@@ -46,7 +46,11 @@ Recipe:
 
 Hint: You can test the desktop version by running 'invader':
 
-    $ invader slow ;# the slow parameter forces a very low frame rate
+    $ (cd demo/invader && invader slow)
+
+    The 'slow' parameter sets a very low frame rate.
+
+    The subshell is used to temporarily enter the demo/invader dir in order to load assets from demo/invader/assets).
 
 6\. Build for Android
 
