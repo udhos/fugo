@@ -166,6 +166,13 @@ func (game *gameState) resize(w, h int) {
 	}
 
 	glc.Viewport(0, 0, w, h)
+
+	if h >= w {
+		game.aspect = float64(h) / float64(w)
+		goglmath.SetOrthoMatrix(&game.proj, -1, 1, -game.aspect, game.aspect, -1, 1)
+		return
+	}
+
 	game.aspect = float64(w) / float64(h)
 	goglmath.SetOrthoMatrix(&game.proj, -game.aspect, game.aspect, -1, 1, -1, 1)
 }
