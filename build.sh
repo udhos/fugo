@@ -30,13 +30,16 @@ build() {
     go tool vet $sub
 
     msg gosimple $sub
-    [ -x ~go/bin/gosimple ] && ~go/bin/gosimple $sub/*.go
+    hash gosimple && gosimple $sub/*.go
 
     msg golint $sub
-    [ -x ~go/bin/golint ] && ~go/bin/golint $sub/*.go
+    hash golint && golint $sub/*.go
 
     msg staticcheck $sub
-    [ -x ~go/bin/staticcheck ] && ~go/bin/staticcheck $sub/*.go
+    hash staticcheck && staticcheck $sub/*.go
+
+    msg unused $sub
+    hash unused && unused $sub/*.go
 
     msg test $full
     go test $full
@@ -49,29 +52,7 @@ mobilebuild() {
     local sub=$1
     local full=$pkg/$sub
 
-    msg fmt $sub
-    gofmt -s -w $sub/*.go
-
-    msg fix $sub
-    go tool fix $sub/*.go
-
-    msg vet $sub
-    go tool vet $sub
-
-    msg gosimple $sub
-    [ -x ~go/bin/gosimple ] && ~go/bin/gosimple $sub/*.go
-
-    msg golint $sub
-    [ -x ~go/bin/golint ] && ~go/bin/golint $sub/*.go
-
-    msg staticcheck $sub
-    [ -x ~go/bin/staticcheck ] && ~go/bin/staticcheck $sub/*.go
-
-    msg test $full
-    go test $full
-
-    msg desktop install $full
-    go install $full
+    build $sub
 
     msg android build $full
     gomobile build -target=android $full
@@ -80,7 +61,8 @@ mobilebuild() {
     echo gomobile install $full
 }
 
-get honnef.co/go/simple/cmd/gosimple
+get honnef.co/go/tools/cmd/unused
+get honnef.co/go/tools/cmd/gosimple
 get honnef.co/go/tools/cmd/staticcheck
 get github.com/golang/lint/golint
 get github.com/udhos/goglmath
