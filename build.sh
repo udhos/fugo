@@ -17,7 +17,35 @@ get() {
 pkg=github.com/udhos/fugo
 
 build() {
+    local sub=$1
+    local full=$pkg/$sub
 
+    msg fmt $sub
+    gofmt -s -w $sub/*.go
+
+    msg fix $sub
+    go tool fix $sub/*.go
+
+    msg vet $sub
+    go tool vet $sub
+
+    msg gosimple $sub
+    [ -x ~go/bin/gosimple ] && ~go/bin/gosimple $sub/*.go
+
+    msg golint $sub
+    [ -x ~go/bin/golint ] && ~go/bin/golint $sub/*.go
+
+    msg staticcheck $sub
+    [ -x ~go/bin/staticcheck ] && ~go/bin/staticcheck $sub/*.go
+
+    msg test $full
+    go test $full
+
+    msg desktop install $full
+    go install $full
+}
+
+mobilebuild() {
     local sub=$1
     local full=$pkg/$sub
 
@@ -57,6 +85,7 @@ get honnef.co/go/tools/cmd/staticcheck
 get github.com/golang/lint/golint
 get github.com/udhos/goglmath
 
-build demo/triangle
-build demo/invader
+mobilebuild demo/triangle
+mobilebuild demo/invader
+build arena
 
