@@ -35,6 +35,36 @@ type gameState struct {
 	aspect     float64
 	shaderVert string
 	shaderFrag string
+	server     string
+}
+
+func newGame() (*gameState, error) {
+	game := &gameState{}
+
+	vert, errVert := loadFull("shader.vert")
+	if errVert != nil {
+		log.Printf("load vertex shader: %v", errVert)
+		return nil, errVert
+	}
+	game.shaderVert = string(vert)
+
+	frag, errFrag := loadFull("shader.frag")
+	if errFrag != nil {
+		log.Printf("load fragment shader: %v", errFrag)
+		return nil, errFrag
+	}
+	game.shaderFrag = string(frag)
+
+	server, errServ := loadFull("server.txt")
+	if errServ != nil {
+		log.Printf("load server: %v", errServ)
+		return nil, errServ
+	}
+	game.server = string(server)
+
+	log.Printf("server: %s", game.server)
+
+	return game, nil
 }
 
 func main() {
@@ -43,24 +73,14 @@ func main() {
 	slowPaint := len(os.Args) > 1
 	log.Printf("slowPaint: %v", slowPaint)
 
-	game := &gameState{}
 	var frames int
 	var paints int
 	sec := time.Now().Second()
-
-	vert, errVert := loadFull("shader.vert")
-	if errVert != nil {
-		log.Printf("load vertex shader: %v", errVert)
+	game, errGame := newGame()
+	if errGame != nil {
+		log.Printf("main: fatal: %v", errGame)
 		return
 	}
-	game.shaderVert = string(vert)
-
-	frag, errFrag := loadFull("shader.frag")
-	if errFrag != nil {
-		log.Printf("load fragment shader: %v", errFrag)
-		return
-	}
-	game.shaderFrag = string(frag)
 
 	app.Main(func(a app.App) {
 		log.Print("app.Main begin")
