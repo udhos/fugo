@@ -67,7 +67,9 @@ get honnef.co/go/tools/cmd/staticcheck
 get github.com/golang/lint/golint
 get github.com/udhos/goglmath
 
-mobilebuild demo/triangle
-mobilebuild demo/invader
+if [ "$1" != arena ]; then
+	mobilebuild demo/triangle
+	mobilebuild demo/invader
+fi
 build arena
 
