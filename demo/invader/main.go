@@ -28,18 +28,19 @@ import (
 )
 
 type gameState struct {
-	width      int
-	height     int
-	gl         gl.Context
-	program    gl.Program
-	buf        gl.Buffer
-	position   gl.Attrib
-	P          gl.Uniform // projection mat4 uniform
-	proj       goglmath.Matrix4
-	aspect     float64
-	shaderVert string
-	shaderFrag string
-	serverAddr string
+	width       int
+	height      int
+	gl          gl.Context
+	program     gl.Program
+	bufTriangle gl.Buffer
+	bufSquare   gl.Buffer
+	position    gl.Attrib
+	P           gl.Uniform // projection mat4 uniform
+	proj        goglmath.Matrix4
+	shaderVert  string
+	shaderFrag  string
+	serverAddr  string
+	playerFuel  float32
 }
 
 func newGame() (*gameState, error) {
@@ -67,6 +68,8 @@ func newGame() (*gameState, error) {
 	game.serverAddr = strings.TrimSpace(string(server))
 
 	log.Printf("server: [%s]", game.serverAddr)
+
+	game.playerFuel = 9.0
 
 	return game, nil
 }
@@ -160,6 +163,7 @@ func main() {
 				game.resize(t.WidthPx, t.HeightPx)
 			case msg.Update:
 				log.Printf("app.Main event update: %v", t)
+				game.playerFuel = t.Fuel
 			}
 		}
 
@@ -197,14 +201,23 @@ func (game *gameState) resize(w, h int) {
 
 	glc.Viewport(0, 0, w, h)
 
+	var minX, maxX, minY, maxY float64
+
 	if h >= w {
-		game.aspect = float64(h) / float64(w)
-		goglmath.SetOrthoMatrix(&game.proj, -1, 1, -game.aspect, game.aspect, -1, 1)
-		return
+		aspect := float64(h) / float64(w)
+		minX = -1
+		maxX = 1
+		minY = -aspect
+		maxY = aspect
+	} else {
+		aspect := float64(w) / float64(h)
+		minX = -aspect
+		maxX = aspect
+		minY = -1
+		maxY = 1
 	}
 
-	game.aspect = float64(w) / float64(h)
-	goglmath.SetOrthoMatrix(&game.proj, -game.aspect, game.aspect, -1, 1, -1, 1)
+	goglmath.SetOrthoMatrix(&game.proj, minX, maxX, minY, maxY, -1, 1)
 }
 
 func (game *gameState) input(x, y float32) {
@@ -223,9 +236,13 @@ func (game *gameState) start(glc gl.Context) {
 
 	log.Printf("start: shader compiled")
 
-	game.buf = glc.CreateBuffer()
-	glc.BindBuffer(gl.ARRAY_BUFFER, game.buf)
+	game.bufTriangle = glc.CreateBuffer()
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufTriangle)
 	glc.BufferData(gl.ARRAY_BUFFER, triangleData, gl.STATIC_DRAW)
+
+	game.bufSquare = glc.CreateBuffer()
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
+	glc.BufferData(gl.ARRAY_BUFFER, squareData, gl.STATIC_DRAW)
 
 	game.position = glc.GetAttribLocation(game.program, "position")
 	game.P = glc.GetUniformLocation(game.program, "P")
@@ -243,7 +260,8 @@ func (game *gameState) stop() {
 	glc := game.gl // shortcut
 
 	glc.DeleteProgram(game.program)
-	glc.DeleteBuffer(game.buf)
+	glc.DeleteBuffer(game.bufTriangle)
+	glc.DeleteBuffer(game.bufSquare)
 
 	game.gl = nil
 
@@ -258,25 +276,42 @@ func (game *gameState) paint() {
 	glc.UseProgram(game.program)
 	glc.EnableVertexAttribArray(game.position)
 
+	// Draw orthorgraphic triangle
 	glc.UniformMatrix4fv(game.P, game.proj.Data())
-
-	glc.BindBuffer(gl.ARRAY_BUFFER, game.buf)
-
-	// how to get data for location attribute within buffer
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufTriangle)
 	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+	glc.DrawArrays(gl.TRIANGLES, 0, triangleVertexCount)
 
-	glc.DrawArrays(gl.TRIANGLES, 0, vertexCount)
+	// Draw square as rectangle
+	squareMVP := goglmath.NewMatrix4Identity()
+	squareMVP.Translate(-1, -1, 0, 1)
+	fuel := float64(game.playerFuel)
+	squareMVP.Scale(2*fuel/10, .05, 1, 1) // width is fuel, heigh is 5%
+	glc.UniformMatrix4fv(game.P, squareMVP.Data())
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
+	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+	glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
 
 	glc.DisableVertexAttribArray(game.position)
 }
 
 const (
-	coordsPerVertex = 3
-	vertexCount     = 3
+	coordsPerVertex     = 3
+	triangleVertexCount = 3
+	squareVertexCount   = 6
 )
 
 var triangleData = f32.Bytes(binary.LittleEndian,
 	0.0, 1.0, 0.0, // top left
 	0.0, 0.0, 0.0, // bottom left
 	1.0, 0.0, 0.0, // bottom right
+)
+
+var squareData = f32.Bytes(binary.LittleEndian,
+	0.0, 1.0, 0.0,
+	0.0, 0.0, 0.0,
+	1.0, 0.0, 0.0,
+	1.0, 0.0, 0.0,
+	1.0, 1.0, 0.0,
+	0.0, 1.0, 0.0,
 )
