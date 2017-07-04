@@ -1,8 +1,8 @@
 package main
 
 import (
-	//"fmt"
 	"encoding/gob"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -39,7 +39,10 @@ func main() {
 		playerAdd: make(chan *player),
 		playerDel: make(chan *player),
 	}
-	go listenAndServe(&w, addr)
+	if errListen := listenAndServe(&w, addr); errListen != nil {
+		log.Printf("main: %v", errListen)
+		return
+	}
 
 	ticker := time.NewTicker(3000 * time.Millisecond)
 
@@ -80,28 +83,29 @@ SERVICE:
 	}
 }
 
-func listenAndServe(w *world, addr string) {
+func listenAndServe(w *world, addr string) error {
 
 	log.Printf("serving on TCP %s", addr)
 
-	listener, err := net.Listen("tcp", addr)
-	if err != nil {
-		log.Printf("listen on TCP %s: %s", addr, err)
-		return
+	listener, errListen := net.Listen("tcp", addr)
+	if errListen != nil {
+		return fmt.Errorf("listenAndServe: %s: %v", addr, errListen)
 	}
-
-	defer listener.Close()
 
 	gob.Register(msg.Update{})
 
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			log.Printf("accept on TCP %s: %s", addr, err)
-			continue
+	go func() {
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				log.Printf("accept on TCP %s: %s", addr, err)
+				continue
+			}
+			go connHandler(w, conn)
 		}
-		go connHandler(w, conn)
-	}
+	}()
+
+	return nil
 }
 
 func connHandler(w *world, conn net.Conn) {
