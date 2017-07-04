@@ -7,6 +7,8 @@ import (
 	"net"
 	"os"
 	"time"
+
+	"github.com/udhos/fugo/msg"
 )
 
 type world struct {
@@ -19,6 +21,12 @@ type world struct {
 type inputMsg struct {
 	player *player
 	msg    interface{}
+}
+
+type player struct {
+	conn      net.Conn
+	output    chan msg.Update
+	fuelStart time.Time
 }
 
 func main() {
@@ -42,6 +50,7 @@ SERVICE:
 		case p := <-w.playerAdd:
 			log.Printf("player add: %v", p)
 			w.playerTab = append(w.playerTab, p)
+			p.fuelStart = time.Now() // reset fuel
 		case p := <-w.playerDel:
 			log.Printf("player del: %v", p)
 			for i, pl := range w.playerTab {
@@ -56,13 +65,24 @@ SERVICE:
 			log.Printf("input: %v", i)
 		case t := <-ticker.C:
 			log.Printf("tick: %v", t)
+			for i, c := range w.playerTab {
+				// calculate fuel for player c
+				rechargeRate := float32(1.0 / 3.0) // 1 unit every 3 seconds
+				fuel := rechargeRate * float32(int64(time.Since(c.fuelStart))/1000000000)
+				if fuel > 10.0 {
+					fuel = 10.0 // clamp max fuel
+				}
+				update := msg.Update{Fuel: fuel}
+				log.Printf("sending update=%v to player %d=%v", update, i, c)
+				c.output <- update // send update to player c
+			}
 		}
 	}
 }
 
 func listenAndServe(w *world, addr string) {
 
-	log.Printf("serving on port TCP %s", addr)
+	log.Printf("serving on TCP %s", addr)
 
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -72,24 +92,26 @@ func listenAndServe(w *world, addr string) {
 
 	defer listener.Close()
 
+	gob.Register(msg.Update{})
+
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
 			log.Printf("accept on TCP %s: %s", addr, err)
 			continue
 		}
-		go handler(w, conn)
+		go connHandler(w, conn)
 	}
 }
 
-func handler(w *world, conn net.Conn) {
+func connHandler(w *world, conn net.Conn) {
 	log.Printf("handler for connection %v", conn)
 
 	defer conn.Close()
 
 	p := &player{
 		conn:   conn,
-		output: make(chan interface{}),
+		output: make(chan msg.Update),
 	}
 
 	w.playerAdd <- p // register player
@@ -99,7 +121,7 @@ func handler(w *world, conn net.Conn) {
 		// copy from socket into input channel
 		dec := gob.NewDecoder(conn)
 		for {
-			var m struct{}
+			var m msg.Update
 			if err := dec.Decode(&m); err != nil {
 				log.Printf("handler: Decode: %v", err)
 				break
@@ -127,9 +149,4 @@ LOOP:
 	}
 	w.playerDel <- p // deregister player
 	log.Printf("handler: writer goroutine exiting")
-}
-
-type player struct {
-	conn   net.Conn
-	output chan interface{}
 }

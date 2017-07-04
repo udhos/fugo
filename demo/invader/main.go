@@ -4,9 +4,11 @@ package main
 
 import (
 	"encoding/binary"
+	"encoding/gob"
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/udhos/goglmath"
@@ -21,6 +23,8 @@ import (
 	"golang.org/x/mobile/exp/f32"
 	"golang.org/x/mobile/exp/gl/glutil"
 	"golang.org/x/mobile/gl"
+
+	"github.com/udhos/fugo/msg"
 )
 
 type gameState struct {
@@ -35,7 +39,7 @@ type gameState struct {
 	aspect     float64
 	shaderVert string
 	shaderFrag string
-	server     string
+	serverAddr string
 }
 
 func newGame() (*gameState, error) {
@@ -60,9 +64,9 @@ func newGame() (*gameState, error) {
 		log.Printf("load server: %v", errServ)
 		return nil, errServ
 	}
-	game.server = string(server)
+	game.serverAddr = strings.TrimSpace(string(server))
 
-	log.Printf("server: %s", game.server)
+	log.Printf("server: [%s]", game.serverAddr)
 
 	return game, nil
 }
@@ -82,8 +86,12 @@ func main() {
 		return
 	}
 
+	gob.Register(msg.Update{})
+
 	app.Main(func(a app.App) {
 		log.Print("app.Main begin")
+
+		go serverHandler(a, game.serverAddr)
 
 	LOOP:
 		for e := range a.Events() {
@@ -150,6 +158,8 @@ func main() {
 				game.input(t.X, t.Y)
 			case size.Event:
 				game.resize(t.WidthPx, t.HeightPx)
+			case msg.Update:
+				log.Printf("app.Main event update: %v", t)
 			}
 		}
 

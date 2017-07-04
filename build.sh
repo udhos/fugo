@@ -16,7 +16,7 @@ get() {
 
 pkg=github.com/udhos/fugo
 
-build() {
+check() {
     local sub=$1
     local full=$pkg/$sub
 
@@ -43,6 +43,13 @@ build() {
 
     msg test $full
     go test $full
+}
+
+build() {
+    local sub=$1
+    local full=$pkg/$sub
+
+    check $sub
 
     msg desktop install $full
     go install $full
@@ -67,6 +74,7 @@ get honnef.co/go/tools/cmd/staticcheck
 get github.com/golang/lint/golint
 get github.com/udhos/goglmath
 
+check msg
 if [ "$1" != arena ]; then
 	mobilebuild demo/triangle
 	mobilebuild demo/invader
