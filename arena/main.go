@@ -24,9 +24,12 @@ type inputMsg struct {
 }
 
 type player struct {
-	conn      net.Conn
-	output    chan msg.Update
-	fuelStart time.Time
+	conn         net.Conn
+	output       chan msg.Update
+	fuelStart    time.Time
+	cannonStart  time.Time
+	cannonDir    float32
+	cannonCoordX float32
 }
 
 func main() {
@@ -53,7 +56,11 @@ SERVICE:
 		case p := <-w.playerAdd:
 			log.Printf("player add: %v", p)
 			w.playerTab = append(w.playerTab, p)
+
 			p.fuelStart = time.Now() // reset fuel
+			p.cannonStart = p.fuelStart
+			p.cannonDir = 1
+			p.cannonCoordX = .8 // 80%
 		case p := <-w.playerDel:
 			log.Printf("player del: %v", p)
 			for i, pl := range w.playerTab {
@@ -68,6 +75,7 @@ SERVICE:
 			log.Printf("input: %v", i)
 		case t := <-ticker.C:
 			log.Printf("tick: %v", t)
+
 			for i, c := range w.playerTab {
 				// calculate fuel for player c
 				rechargeRate := float32(1.0 / 3.0) // 1 unit every 3 seconds
@@ -75,7 +83,23 @@ SERVICE:
 				if fuel > 10.0 {
 					fuel = 10.0 // clamp max fuel
 				}
-				update := msg.Update{Fuel: fuel}
+
+				// calculate position
+				speed := float32(.05 / 1.0) // 1% every 1 second
+				delta := speed * float32(int64(time.Since(c.cannonStart))/1000000000)
+				c.cannonCoordX += delta * c.cannonDir
+				if c.cannonCoordX < 0 {
+					c.cannonCoordX = -c.cannonCoordX
+					c.cannonDir = 1
+				}
+				if c.cannonCoordX > 1 {
+					c.cannonCoordX = 2 - c.cannonCoordX
+					c.cannonDir = -1
+				}
+				c.cannonStart = time.Now()
+
+				update := msg.Update{Fuel: fuel, CannonX: c.cannonCoordX}
+
 				log.Printf("sending update=%v to player %d=%v", update, i, c)
 				c.output <- update // send update to player c
 			}

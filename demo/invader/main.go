@@ -35,6 +35,7 @@ type gameState struct {
 	bufTriangle   gl.Buffer
 	bufSquare     gl.Buffer
 	bufSquareWire gl.Buffer
+	bufCannon     gl.Buffer
 	position      gl.Attrib
 	P             gl.Uniform // projection mat4 uniform
 	color         gl.Uniform
@@ -43,6 +44,7 @@ type gameState struct {
 	shaderFrag    string
 	serverAddr    string
 	playerFuel    float32
+	playerCannonX float32
 }
 
 func newGame() (*gameState, error) {
@@ -164,6 +166,7 @@ func main() {
 			case msg.Update:
 				log.Printf("app.Main event update: %v", t)
 				game.playerFuel = t.Fuel
+				game.playerCannonX = t.CannonX
 			}
 		}
 
@@ -248,6 +251,10 @@ func (game *gameState) start(glc gl.Context) {
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareWire)
 	glc.BufferData(gl.ARRAY_BUFFER, squareWireData, gl.STATIC_DRAW)
 
+	game.bufCannon = glc.CreateBuffer()
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufCannon)
+	glc.BufferData(gl.ARRAY_BUFFER, cannonData, gl.STATIC_DRAW)
+
 	game.position = glc.GetAttribLocation(game.program, "position")
 	game.P = glc.GetUniformLocation(game.program, "P")
 	game.color = glc.GetUniformLocation(game.program, "color")
@@ -292,8 +299,8 @@ func (game *gameState) paint() {
 
 	// Wire rectangle around fuel bar
 	squareWireMVP := goglmath.NewMatrix4Identity()
-	squareWireMVP.Translate(-1, -1, .1, 1) // w=.1 put in front of fuel bar
-	squareWireMVP.Scale(2, .05, 1, 1)
+	squareWireMVP.Translate(-1, -1, .1, 1) // z=.1 put in front of fuel bar
+	squareWireMVP.Scale(2, .04, 1, 1)
 	glc.UniformMatrix4fv(game.P, squareWireMVP.Data())
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareWire)
 	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
@@ -304,11 +311,22 @@ func (game *gameState) paint() {
 	squareMVP := goglmath.NewMatrix4Identity()
 	squareMVP.Translate(-1, -1, 0, 1)
 	fuel := float64(game.playerFuel)
-	squareMVP.Scale(2*fuel/10, .05, 1, 1) // width is fuel, heigh is 5%
+	squareMVP.Scale(2*fuel/10, .04, 1, 1) // width is fuel, heigh is 5%
 	glc.UniformMatrix4fv(game.P, squareMVP.Data())
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
 	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
 	glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
+
+	// Cannon
+	glc.Uniform4f(game.color, .6, .6, .9, 1) // blue
+	cannonMVP := goglmath.NewMatrix4Identity()
+	width := .1 // 10%
+	cannonMVP.Translate((2-width)*float64(game.playerCannonX)-1, -.95, 0, 1)
+	cannonMVP.Scale(width, width, 1, 1) // 10% size
+	glc.UniformMatrix4fv(game.P, cannonMVP.Data())
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufCannon)
+	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+	glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
 
 	glc.DisableVertexAttribArray(game.position)
 }
@@ -316,6 +334,7 @@ func (game *gameState) paint() {
 const (
 	coordsPerVertex       = 3
 	triangleVertexCount   = 3
+	cannonVertexCount     = 3
 	squareVertexCount     = 6
 	squareWireVertexCount = 4
 )
@@ -324,6 +343,12 @@ var triangleData = f32.Bytes(binary.LittleEndian,
 	0.0, 1.0, 0.0, // top left
 	0.0, 0.0, 0.0, // bottom left
 	1.0, 0.0, 0.0, // bottom right
+)
+
+var cannonData = f32.Bytes(binary.LittleEndian,
+	0.5, 1.0, 0.0,
+	0.0, 0.0, 0.0,
+	1.0, 0.0, 0.0,
 )
 
 var squareData = f32.Bytes(binary.LittleEndian,
