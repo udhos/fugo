@@ -28,19 +28,21 @@ import (
 )
 
 type gameState struct {
-	width       int
-	height      int
-	gl          gl.Context
-	program     gl.Program
-	bufTriangle gl.Buffer
-	bufSquare   gl.Buffer
-	position    gl.Attrib
-	P           gl.Uniform // projection mat4 uniform
-	proj        goglmath.Matrix4
-	shaderVert  string
-	shaderFrag  string
-	serverAddr  string
-	playerFuel  float32
+	width         int
+	height        int
+	gl            gl.Context
+	program       gl.Program
+	bufTriangle   gl.Buffer
+	bufSquare     gl.Buffer
+	bufSquareWire gl.Buffer
+	position      gl.Attrib
+	P             gl.Uniform // projection mat4 uniform
+	color         gl.Uniform
+	proj          goglmath.Matrix4
+	shaderVert    string
+	shaderFrag    string
+	serverAddr    string
+	playerFuel    float32
 }
 
 func newGame() (*gameState, error) {
@@ -68,8 +70,6 @@ func newGame() (*gameState, error) {
 	game.serverAddr = strings.TrimSpace(string(server))
 
 	log.Printf("server: [%s]", game.serverAddr)
-
-	game.playerFuel = 9.0
 
 	return game, nil
 }
@@ -244,8 +244,13 @@ func (game *gameState) start(glc gl.Context) {
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
 	glc.BufferData(gl.ARRAY_BUFFER, squareData, gl.STATIC_DRAW)
 
+	game.bufSquareWire = glc.CreateBuffer()
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareWire)
+	glc.BufferData(gl.ARRAY_BUFFER, squareWireData, gl.STATIC_DRAW)
+
 	game.position = glc.GetAttribLocation(game.program, "position")
 	game.P = glc.GetUniformLocation(game.program, "P")
+	game.color = glc.GetUniformLocation(game.program, "color")
 
 	glc.ClearColor(.5, .5, .5, 1) // gray background
 
@@ -262,6 +267,7 @@ func (game *gameState) stop() {
 	glc.DeleteProgram(game.program)
 	glc.DeleteBuffer(game.bufTriangle)
 	glc.DeleteBuffer(game.bufSquare)
+	glc.DeleteBuffer(game.bufSquareWire)
 
 	game.gl = nil
 
@@ -276,13 +282,25 @@ func (game *gameState) paint() {
 	glc.UseProgram(game.program)
 	glc.EnableVertexAttribArray(game.position)
 
+	glc.Uniform4f(game.color, .5, .9, .5, 1) // green
+
 	// Draw orthorgraphic triangle
 	glc.UniformMatrix4fv(game.P, game.proj.Data())
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufTriangle)
 	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
 	glc.DrawArrays(gl.TRIANGLES, 0, triangleVertexCount)
 
-	// Draw square as rectangle
+	// Wire rectangle around fuel bar
+	squareWireMVP := goglmath.NewMatrix4Identity()
+	squareWireMVP.Translate(-1, -1, .1, 1) // w=.1 put in front of fuel bar
+	squareWireMVP.Scale(2, .05, 1, 1)
+	glc.UniformMatrix4fv(game.P, squareWireMVP.Data())
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareWire)
+	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+	glc.DrawArrays(gl.LINE_LOOP, 0, squareWireVertexCount)
+
+	// Fuel bar
+	glc.Uniform4f(game.color, .9, .9, .9, 1) // white
 	squareMVP := goglmath.NewMatrix4Identity()
 	squareMVP.Translate(-1, -1, 0, 1)
 	fuel := float64(game.playerFuel)
@@ -296,9 +314,10 @@ func (game *gameState) paint() {
 }
 
 const (
-	coordsPerVertex     = 3
-	triangleVertexCount = 3
-	squareVertexCount   = 6
+	coordsPerVertex       = 3
+	triangleVertexCount   = 3
+	squareVertexCount     = 6
+	squareWireVertexCount = 4
 )
 
 var triangleData = f32.Bytes(binary.LittleEndian,
@@ -314,4 +333,11 @@ var squareData = f32.Bytes(binary.LittleEndian,
 	1.0, 0.0, 0.0,
 	1.0, 1.0, 0.0,
 	0.0, 1.0, 0.0,
+)
+
+var squareWireData = f32.Bytes(binary.LittleEndian,
+	0.0, 1.0, 0.0,
+	0.0, 0.0, 0.0,
+	1.0, 0.0, 0.0,
+	1.0, 1.0, 0.0,
 )

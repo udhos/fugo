@@ -44,7 +44,7 @@ func main() {
 		return
 	}
 
-	ticker := time.NewTicker(3000 * time.Millisecond)
+	ticker := time.NewTicker(1000 * time.Millisecond)
 
 	log.Printf("main: entering service loop")
 SERVICE:
