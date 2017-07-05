@@ -2,7 +2,7 @@
 [![Go Report Card - invader](https://goreportcard.com/badge/github.com/udhos/fugo/invader)](https://goreportcard.com/report/github.com/udhos/fugo/invader)
 
 # fugo
-fugo - fun with Go
+fugo - fun with Go. gomobile OpenGL game
 
 QUICK START
 ===========
