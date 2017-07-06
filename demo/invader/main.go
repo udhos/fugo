@@ -44,6 +44,7 @@ type gameState struct {
 	shaderVert        string
 	shaderFrag        string
 	serverAddr        string
+	serverOutput      chan msg.Fire
 	playerFuel        float32
 	playerCannonX     float32
 	playerCannonSpeed float32
@@ -80,6 +81,8 @@ func newGame() (*gameState, error) {
 	game.updateInterval = time.Second
 	game.updateLast = time.Now()
 
+	game.serverOutput = make(chan msg.Fire)
+
 	return game, nil
 }
 
@@ -99,11 +102,12 @@ func main() {
 	}
 
 	gob.Register(msg.Update{})
+	gob.Register(msg.Fire{})
 
 	app.Main(func(a app.App) {
 		log.Print("app.Main begin")
 
-		go serverHandler(a, game.serverAddr)
+		go serverHandler(a, game.serverAddr, game.serverOutput)
 
 	LOOP:
 		for e := range a.Events() {
@@ -235,7 +239,9 @@ func (game *gameState) resize(w, h int) {
 }
 
 func (game *gameState) input(x, y float32) {
-	log.Printf("input: %f,%f (%d x %d)", x, y, game.width, game.height)
+	log.Printf("input: event %f,%f (%d x %d)", x, y, game.width, game.height)
+
+	game.serverOutput <- msg.Fire{}
 }
 
 func (game *gameState) start(glc gl.Context) {

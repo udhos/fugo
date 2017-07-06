@@ -44,6 +44,7 @@ func main() {
 		playerAdd:      make(chan *player),
 		playerDel:      make(chan *player),
 		updateInterval: 1000 * time.Millisecond,
+		input:          make(chan inputMsg),
 	}
 	if errListen := listenAndServe(&w, addr); errListen != nil {
 		log.Printf("main: %v", errListen)
@@ -76,8 +77,14 @@ SERVICE:
 			log.Printf("player not found: %v", p)
 		case i := <-w.input:
 			log.Printf("input: %v", i)
-		case t := <-ticker.C:
-			log.Printf("tick: %v", t)
+
+			switch m := i.msg.(type) {
+			case msg.Fire:
+				log.Printf("input fire: %v", m)
+			}
+
+		case <-ticker.C:
+			//log.Printf("tick: %v", t)
 
 			for i, c := range w.playerTab {
 				// calculate fuel for player c
@@ -113,7 +120,7 @@ SERVICE:
 					Interval:    w.updateInterval,
 				}
 
-				log.Printf("sending update=%v to player %d=%v", update, i, c)
+				log.Printf("sending update=%v to player %d", update, i)
 				c.output <- update // send update to player c
 			}
 		}
@@ -130,6 +137,7 @@ func listenAndServe(w *world, addr string) error {
 	}
 
 	gob.Register(msg.Update{})
+	gob.Register(msg.Fire{})
 
 	go func() {
 		for {
@@ -162,7 +170,7 @@ func connHandler(w *world, conn net.Conn) {
 		// copy from socket into input channel
 		dec := gob.NewDecoder(conn)
 		for {
-			var m msg.Update
+			var m msg.Fire
 			if err := dec.Decode(&m); err != nil {
 				log.Printf("handler: Decode: %v", err)
 				break

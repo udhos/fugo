@@ -11,3 +11,7 @@ type Update struct {
 	CannonSpeed float32
 	Interval    time.Duration
 }
+
+// Fire message is sent from client to server.
+type Fire struct {
+}
