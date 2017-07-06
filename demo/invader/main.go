@@ -24,27 +24,31 @@ import (
 	"golang.org/x/mobile/exp/gl/glutil"
 	"golang.org/x/mobile/gl"
 
+	"github.com/udhos/fugo/future"
 	"github.com/udhos/fugo/msg"
 )
 
 type gameState struct {
-	width         int
-	height        int
-	gl            gl.Context
-	program       gl.Program
-	bufTriangle   gl.Buffer
-	bufSquare     gl.Buffer
-	bufSquareWire gl.Buffer
-	bufCannon     gl.Buffer
-	position      gl.Attrib
-	P             gl.Uniform // projection mat4 uniform
-	color         gl.Uniform
-	proj          goglmath.Matrix4
-	shaderVert    string
-	shaderFrag    string
-	serverAddr    string
-	playerFuel    float32
-	playerCannonX float32
+	width             int
+	height            int
+	gl                gl.Context
+	program           gl.Program
+	bufTriangle       gl.Buffer
+	bufSquare         gl.Buffer
+	bufSquareWire     gl.Buffer
+	bufCannon         gl.Buffer
+	position          gl.Attrib
+	P                 gl.Uniform // projection mat4 uniform
+	color             gl.Uniform
+	proj              goglmath.Matrix4
+	shaderVert        string
+	shaderFrag        string
+	serverAddr        string
+	playerFuel        float32
+	playerCannonX     float32
+	playerCannonSpeed float32
+	updateInterval    time.Duration
+	updateLast        time.Time
 }
 
 func newGame() (*gameState, error) {
@@ -73,6 +77,9 @@ func newGame() (*gameState, error) {
 
 	log.Printf("server: [%s]", game.serverAddr)
 
+	game.updateInterval = time.Second
+	game.updateLast = time.Now()
+
 	return game, nil
 }
 
@@ -82,7 +89,7 @@ func main() {
 	slowPaint := len(os.Args) > 1
 	log.Printf("slowPaint: %v", slowPaint)
 
-	var frames int
+	var paintRequests int
 	var paints int
 	sec := time.Now().Second()
 	game, errGame := newGame()
@@ -135,23 +142,24 @@ func main() {
 					continue
 				}
 
-				paints++ // events
+				paintRequests++
 
 				if now := time.Now().Second(); now != sec {
-					log.Printf("fps: %d, paints: %d", frames, paints)
-					frames = 0
+					// once per second event
+					log.Printf("requests: %d, paints: %d", paintRequests, paints)
+					paintRequests = 0
 					paints = 0
 					sec = now
 				}
 
-				if !slowPaint || frames == 0 {
-					frames++ // draws
-					game.paint()
-					a.Publish()
-				}
+				//if !slowPaint || paintRequests == 0 {
+				paints++
+				game.paint()
+				a.Publish()
+				//}
 
 				if slowPaint {
-					time.Sleep(500 * time.Millisecond)
+					time.Sleep(200 * time.Millisecond) // slow down paint event request
 				}
 
 				// we request next paint event
@@ -167,6 +175,9 @@ func main() {
 				log.Printf("app.Main event update: %v", t)
 				game.playerFuel = t.Fuel
 				game.playerCannonX = t.CannonX
+				game.playerCannonSpeed = t.CannonSpeed
+				game.updateInterval = t.Interval
+				game.updateLast = time.Now()
 			}
 		}
 
@@ -284,6 +295,8 @@ func (game *gameState) stop() {
 func (game *gameState) paint() {
 	glc := game.gl // shortcut
 
+	elap := time.Since(game.updateLast)
+
 	glc.Clear(gl.COLOR_BUFFER_BIT) // draw ClearColor background
 
 	glc.UseProgram(game.program)
@@ -310,7 +323,8 @@ func (game *gameState) paint() {
 	glc.Uniform4f(game.color, .9, .9, .9, 1) // white
 	squareMVP := goglmath.NewMatrix4Identity()
 	squareMVP.Translate(-1, -1, 0, 1)
-	fuel := float64(game.playerFuel)
+	//fuel := float64(game.playerFuel)
+	fuel := float64(future.Fuel(game.playerFuel, elap))
 	squareMVP.Scale(2*fuel/10, .04, 1, 1) // width is fuel, heigh is 5%
 	glc.UniformMatrix4fv(game.P, squareMVP.Data())
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
@@ -320,8 +334,10 @@ func (game *gameState) paint() {
 	// Cannon
 	glc.Uniform4f(game.color, .6, .6, .9, 1) // blue
 	cannonMVP := goglmath.NewMatrix4Identity()
+	cannonX, _ := future.CannonX(game.playerCannonX, game.playerCannonSpeed, elap)
 	width := .1 // 10%
-	cannonMVP.Translate((2-width)*float64(game.playerCannonX)-1, -.95, 0, 1)
+	//cannonMVP.Translate((2-width)*float64(game.playerCannonX)-1, -.95, 0, 1)
+	cannonMVP.Translate((2-width)*float64(cannonX)-1, -.95, 0, 1)
 	cannonMVP.Scale(width, width, 1, 1) // 10% size
 	glc.UniformMatrix4fv(game.P, cannonMVP.Data())
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufCannon)

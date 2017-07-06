@@ -74,6 +74,7 @@ get honnef.co/go/tools/cmd/staticcheck
 get github.com/golang/lint/golint
 get github.com/udhos/goglmath
 
+check future
 check msg
 if [ "$1" != arena ]; then
 	mobilebuild demo/triangle

@@ -8,14 +8,16 @@ import (
 	"os"
 	"time"
 
+	"github.com/udhos/fugo/future"
 	"github.com/udhos/fugo/msg"
 )
 
 type world struct {
-	playerTab []*player
-	playerAdd chan *player
-	playerDel chan *player
-	input     chan inputMsg
+	playerTab      []*player
+	playerAdd      chan *player
+	playerDel      chan *player
+	input          chan inputMsg
+	updateInterval time.Duration
 }
 
 type inputMsg struct {
@@ -28,7 +30,7 @@ type player struct {
 	output       chan msg.Update
 	fuelStart    time.Time
 	cannonStart  time.Time
-	cannonDir    float32
+	cannonSpeed  float32
 	cannonCoordX float32
 }
 
@@ -38,16 +40,17 @@ func main() {
 		addr = os.Args[1]
 	}
 	w := world{
-		playerTab: []*player{},
-		playerAdd: make(chan *player),
-		playerDel: make(chan *player),
+		playerTab:      []*player{},
+		playerAdd:      make(chan *player),
+		playerDel:      make(chan *player),
+		updateInterval: 1000 * time.Millisecond,
 	}
 	if errListen := listenAndServe(&w, addr); errListen != nil {
 		log.Printf("main: %v", errListen)
 		return
 	}
 
-	ticker := time.NewTicker(1000 * time.Millisecond)
+	ticker := time.NewTicker(w.updateInterval)
 
 	log.Printf("main: entering service loop")
 SERVICE:
@@ -59,8 +62,8 @@ SERVICE:
 
 			p.fuelStart = time.Now() // reset fuel
 			p.cannonStart = p.fuelStart
-			p.cannonDir = 1
-			p.cannonCoordX = .8 // 80%
+			p.cannonSpeed = float32(.05 / 1.0) // 5% every 1 second
+			p.cannonCoordX = .8                // 80%
 		case p := <-w.playerDel:
 			log.Printf("player del: %v", p)
 			for i, pl := range w.playerTab {
@@ -78,27 +81,37 @@ SERVICE:
 
 			for i, c := range w.playerTab {
 				// calculate fuel for player c
-				rechargeRate := float32(1.0 / 3.0) // 1 unit every 3 seconds
-				fuel := rechargeRate * float32(int64(time.Since(c.fuelStart))/1000000000)
-				if fuel > 10.0 {
-					fuel = 10.0 // clamp max fuel
-				}
+				/*
+					rechargeRate := float32(1.0 / 3.0) // 1 unit every 3 seconds
+					fuel := rechargeRate * float32(int64(time.Since(c.fuelStart))/1000000000)
+					if fuel > 10.0 {
+						fuel = 10.0 // clamp max fuel
+					}
+				*/
+				fuel := future.Fuel(0, time.Since(c.fuelStart))
 
 				// calculate position
-				speed := float32(.05 / 1.0) // 1% every 1 second
-				delta := speed * float32(int64(time.Since(c.cannonStart))/1000000000)
-				c.cannonCoordX += delta * c.cannonDir
-				if c.cannonCoordX < 0 {
-					c.cannonCoordX = -c.cannonCoordX
-					c.cannonDir = 1
-				}
-				if c.cannonCoordX > 1 {
-					c.cannonCoordX = 2 - c.cannonCoordX
-					c.cannonDir = -1
-				}
+				/*
+					speed := float32(.05 / 1.0) // 1% every 1 second
+					delta := speed * float32(int64(time.Since(c.cannonStart))/1000000000)
+					c.cannonCoordX += delta * c.cannonDir
+					if c.cannonCoordX < 0 {
+						c.cannonCoordX = -c.cannonCoordX
+						c.cannonDir = 1
+					}
+					if c.cannonCoordX > 1 {
+						c.cannonCoordX = 2 - c.cannonCoordX
+						c.cannonDir = -1
+					}
+				*/
+				c.cannonCoordX, c.cannonSpeed = future.CannonX(c.cannonCoordX, c.cannonSpeed, time.Since(c.cannonStart))
 				c.cannonStart = time.Now()
 
-				update := msg.Update{Fuel: fuel, CannonX: c.cannonCoordX}
+				update := msg.Update{Fuel: fuel,
+					CannonX:     c.cannonCoordX,
+					CannonSpeed: c.cannonSpeed,
+					Interval:    w.updateInterval,
+				}
 
 				log.Printf("sending update=%v to player %d=%v", update, i, c)
 				c.output <- update // send update to player c
