@@ -4,7 +4,7 @@
 # fugo
 fugo - fun with Go. gomobile OpenGL game
 
-#QUICK START
+# QUICK START
 
 1\. Install latest Go
 
@@ -37,7 +37,7 @@ Recipe:
 
     go get github.com/udhos/fugo
 
-##Building the INVADER application
+## Building the INVADER application
 
 5\. Build for desktop
 
@@ -69,7 +69,7 @@ Recipe:
 
     gomobile install github.com/udhos/fugo/demo/invader
 
-##Building the ARENA server
+## Building the ARENA server
 
 8\. Build the server
 
