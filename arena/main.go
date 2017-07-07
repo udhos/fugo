@@ -144,7 +144,7 @@ func connHandler(w *world, conn net.Conn) {
 	}
 
 	w.playerAdd <- p // register player
-	quitWriter := make(chan int)
+	quitWriter := make(chan struct{})
 
 	go func() {
 		// copy from socket into input channel

@@ -22,7 +22,7 @@ func serverHandler(a app.App, serverAddr string, output <-chan msg.Fire) {
 			log.Printf("serverHandler: error %s: %v", serverAddr, errDial)
 		} else {
 			log.Printf("serverHandler: connected %s", serverAddr)
-			quitWriter := make(chan int)
+			quitWriter := make(chan struct{})
 			go writeLoop(conn, quitWriter, output) // spawn writer
 			readLoop(a, conn)                      // loop reader
 			conn.Close()
@@ -48,7 +48,7 @@ func readLoop(a app.App, conn net.Conn) {
 	log.Printf("readLoop: exiting")
 }
 
-func writeLoop(conn net.Conn, quit <-chan int, output <-chan msg.Fire) {
+func writeLoop(conn net.Conn, quit <-chan struct{}, output <-chan msg.Fire) {
 	log.Printf("writeLoop: goroutine starting")
 	// copy from output channel into socket
 	enc := gob.NewEncoder(conn)
