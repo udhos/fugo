@@ -49,11 +49,11 @@ Hint: You can test the desktop version by running 'invader':
 
     $ (cd demo/invader && invader slow)
 
-    The 'slow' parameter sets a very low frame rate.
+The parameter 'slow' sets a very low frame rate.
 
-    The subshell is used to temporarily enter the demo/invader dir in order to load assets from demo/invader/assets).
+The subshell is used to temporarily enter the demo/invader dir in order to load assets from demo/invader/assets).
 
-    The Invader application will try to reach the Arena server specified in the file server.txt:
+The Invader application will try to reach the Arena server specified in the file server.txt:
 
     $ more demo/invader/assets/server.txt 
     localhost:8080
