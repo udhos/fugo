@@ -63,8 +63,8 @@ SERVICE:
 
 			p.fuelStart = time.Now() // reset fuel
 			p.cannonStart = p.fuelStart
-			p.cannonSpeed = float32(.05 / 1.0) // 5% every 1 second
-			p.cannonCoordX = .8                // 80%
+			p.cannonSpeed = float32(.1 / 1.0) // 10% every 1 second
+			p.cannonCoordX = .8               // 80%
 		case p := <-w.playerDel:
 			log.Printf("player del: %v", p)
 			for i, pl := range w.playerTab {
