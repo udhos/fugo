@@ -18,13 +18,7 @@ type world struct {
 	playerDel      chan *player
 	input          chan inputMsg
 	updateInterval time.Duration
-	missileList    []*missile
-}
-
-type missile struct {
-	coordX float32
-	coordY float32
-	speed  float32
+	missileList    []*msg.Missile
 }
 
 type inputMsg struct {
@@ -39,6 +33,7 @@ type player struct {
 	cannonStart  time.Time
 	cannonSpeed  float32
 	cannonCoordX float32
+	team         int
 }
 
 func main() {
@@ -97,32 +92,54 @@ SERVICE:
 				// consume fuel
 				i.player.fuelStart = i.player.fuelStart.Add(time.Duration(float32(time.Second) / future.FuelRechargeRate))
 
-				w.missileList = append(w.missileList, &missile{})
+				miss1 := &msg.Missile{
+					CoordX: i.player.cannonCoordX,
+					Team:   0,
+				}
+				w.missileList = append(w.missileList, miss1)
+				miss2 := &msg.Missile{
+					CoordX: i.player.cannonCoordX,
+					Team:   1,
+				}
+				w.missileList = append(w.missileList, miss2)
 			}
 
 		case <-ticker.C:
 			//log.Printf("tick: %v", t)
 
-			for i, c := range w.playerTab {
-				// calculate fuel for player c
-				fuel := future.Fuel(0, time.Since(c.fuelStart))
+			updateWorld(&w)
 
-				// calculate position
-				c.cannonCoordX, c.cannonSpeed = future.CannonX(c.cannonCoordX, c.cannonSpeed, time.Since(c.cannonStart))
-				c.cannonStart = time.Now()
-
-				update := msg.Update{
-					Fuel:        fuel,
-					CannonX:     c.cannonCoordX,
-					CannonSpeed: c.cannonSpeed,
-					Interval:    w.updateInterval,
-				}
-
-				log.Printf("sending update=%v to player %d", update, i)
-				c.output <- update // send update to player c
+			for _, c := range w.playerTab {
+				sendUpdatesToPlayer(&w, c)
 			}
 		}
 	}
+}
+
+func updateWorld(w *world) {
+	for _, c := range w.playerTab {
+		// calculate position
+		c.cannonCoordX, c.cannonSpeed = future.CannonX(c.cannonCoordX, c.cannonSpeed, time.Since(c.cannonStart))
+		c.cannonStart = time.Now()
+	}
+}
+
+func playerFuel(p *player) float32 {
+	return future.Fuel(0, time.Since(p.fuelStart))
+}
+
+func sendUpdatesToPlayer(w *world, p *player) {
+	update := msg.Update{
+		Fuel:          playerFuel(p),
+		CannonX:       p.cannonCoordX,
+		CannonSpeed:   p.cannonSpeed,
+		Interval:      w.updateInterval,
+		WorldMissiles: w.missileList,
+	}
+
+	log.Printf("sending updates to player %v", p)
+
+	p.output <- update
 }
 
 func listenAndServe(w *world, addr string) error {
