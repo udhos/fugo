@@ -18,6 +18,13 @@ type world struct {
 	playerDel      chan *player
 	input          chan inputMsg
 	updateInterval time.Duration
+	missileList    []*missile
+}
+
+type missile struct {
+	coordX float32
+	coordY float32
+	speed  float32
 }
 
 type inputMsg struct {
@@ -81,6 +88,16 @@ SERVICE:
 			switch m := i.msg.(type) {
 			case msg.Fire:
 				log.Printf("input fire: %v", m)
+
+				fuel := future.Fuel(0, time.Since(i.player.fuelStart))
+				if fuel < 1 {
+					continue SERVICE // not enough fuel
+				}
+
+				// consume fuel
+				i.player.fuelStart = i.player.fuelStart.Add(time.Duration(float32(time.Second) / future.FuelRechargeRate))
+
+				w.missileList = append(w.missileList, &missile{})
 			}
 
 		case <-ticker.C:
@@ -94,7 +111,8 @@ SERVICE:
 				c.cannonCoordX, c.cannonSpeed = future.CannonX(c.cannonCoordX, c.cannonSpeed, time.Since(c.cannonStart))
 				c.cannonStart = time.Now()
 
-				update := msg.Update{Fuel: fuel,
+				update := msg.Update{
+					Fuel:        fuel,
 					CannonX:     c.cannonCoordX,
 					CannonSpeed: c.cannonSpeed,
 					Interval:    w.updateInterval,
