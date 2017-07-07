@@ -88,29 +88,9 @@ SERVICE:
 
 			for i, c := range w.playerTab {
 				// calculate fuel for player c
-				/*
-					rechargeRate := float32(1.0 / 3.0) // 1 unit every 3 seconds
-					fuel := rechargeRate * float32(int64(time.Since(c.fuelStart))/1000000000)
-					if fuel > 10.0 {
-						fuel = 10.0 // clamp max fuel
-					}
-				*/
 				fuel := future.Fuel(0, time.Since(c.fuelStart))
 
 				// calculate position
-				/*
-					speed := float32(.05 / 1.0) // 1% every 1 second
-					delta := speed * float32(int64(time.Since(c.cannonStart))/1000000000)
-					c.cannonCoordX += delta * c.cannonDir
-					if c.cannonCoordX < 0 {
-						c.cannonCoordX = -c.cannonCoordX
-						c.cannonDir = 1
-					}
-					if c.cannonCoordX > 1 {
-						c.cannonCoordX = 2 - c.cannonCoordX
-						c.cannonDir = -1
-					}
-				*/
 				c.cannonCoordX, c.cannonSpeed = future.CannonX(c.cannonCoordX, c.cannonSpeed, time.Since(c.cannonStart))
 				c.cannonStart = time.Now()
 
