@@ -89,9 +89,10 @@ SERVICE:
 					continue SERVICE // not enough fuel
 				}
 
-				now := time.Now()
-				begin := now.Add(-time.Duration(float32(time.Second)*11/future.FuelRechargeRate))
-				i.player.fuelStart = begin.Add(time.Duration(float32(time.Second)*fuel/future.FuelRechargeRate))
+				if fuel >= 10 {
+					i.player.fuelStart = time.Now().Add(-time.Duration(float32(time.Second) * 10 / future.FuelRechargeRate))
+				}
+				i.player.fuelStart = i.player.fuelStart.Add(time.Duration(float32(time.Second) / future.FuelRechargeRate))
 
 				log.Printf("fuel was=%v is=%v", fuel, playerFuel(i.player))
 
