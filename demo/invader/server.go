@@ -42,7 +42,7 @@ func readLoop(a app.App, conn net.Conn) {
 			log.Printf("readLoop: Decode: %v", err)
 			break
 		}
-		log.Printf("readLoop: received: %v", m)
+		//log.Printf("readLoop: received: %v", m)
 		a.Send(m)
 	}
 	log.Printf("readLoop: exiting")

@@ -170,13 +170,17 @@ func main() {
 				// in order to draw as fast as possible
 				a.Send(paint.Event{})
 			case mouse.Event:
-				game.input(t.X, t.Y)
+				press := (t.Direction & 1) == 1
+				release := (t.Direction & 2) == 2
+				game.input(press, release, t.X, t.Y)
 			case touch.Event:
-				game.input(t.X, t.Y)
+				press := t.Type == touch.TypeBegin
+				release := t.Type == touch.TypeEnd
+				game.input(press, release, t.X, t.Y)
 			case size.Event:
 				game.resize(t.WidthPx, t.HeightPx)
 			case msg.Update:
-				log.Printf("app.Main event update: %v", t)
+				//log.Printf("app.Main event update: %v", t)
 				game.playerFuel = t.Fuel
 				game.playerCannonX = t.CannonX
 				game.playerCannonSpeed = t.CannonSpeed
@@ -238,10 +242,12 @@ func (game *gameState) resize(w, h int) {
 	goglmath.SetOrthoMatrix(&game.proj, minX, maxX, minY, maxY, -1, 1)
 }
 
-func (game *gameState) input(x, y float32) {
-	log.Printf("input: event %f,%f (%d x %d)", x, y, game.width, game.height)
+func (game *gameState) input(press, release bool, x, y float32) {
+	log.Printf("input: event press=%v %f,%f (%d x %d)", press, x, y, game.width, game.height)
 
-	game.serverOutput <- msg.Fire{}
+	if press {
+		game.serverOutput <- msg.Fire{}
+	}
 }
 
 func (game *gameState) start(glc gl.Context) {
