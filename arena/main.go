@@ -84,13 +84,16 @@ SERVICE:
 			case msg.Fire:
 				log.Printf("input fire: %v", m)
 
-				fuel := future.Fuel(0, time.Since(i.player.fuelStart))
+				fuel := playerFuel(i.player)
 				if fuel < 1 {
 					continue SERVICE // not enough fuel
 				}
 
-				// consume fuel
-				i.player.fuelStart = i.player.fuelStart.Add(time.Duration(float32(time.Second) / future.FuelRechargeRate))
+				now := time.Now()
+				begin := now.Add(-time.Duration(float32(time.Second)*11/future.FuelRechargeRate))
+				i.player.fuelStart = begin.Add(time.Duration(float32(time.Second)*fuel/future.FuelRechargeRate))
+
+				log.Printf("fuel was=%v is=%v", fuel, playerFuel(i.player))
 
 				miss1 := &msg.Missile{
 					CoordX: i.player.cannonCoordX,
