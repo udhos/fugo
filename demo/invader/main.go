@@ -50,6 +50,7 @@ type gameState struct {
 	playerCannonSpeed float32
 	updateInterval    time.Duration
 	updateLast        time.Time
+	missiles          []*msg.Missile
 }
 
 func newGame() (*gameState, error) {
@@ -185,6 +186,7 @@ func main() {
 				game.playerCannonX = t.CannonX
 				game.playerCannonSpeed = t.CannonSpeed
 				game.updateInterval = t.Interval
+				game.missiles = t.WorldMissiles
 				game.updateLast = time.Now()
 			}
 		}
@@ -348,13 +350,17 @@ func (game *gameState) paint() {
 	cannonMVP := goglmath.NewMatrix4Identity()
 	cannonX, _ := future.CannonX(game.playerCannonX, game.playerCannonSpeed, elap)
 	width := .1 // 10%
-	//cannonMVP.Translate((2-width)*float64(game.playerCannonX)-1, -.95, 0, 1)
 	cannonMVP.Translate((2-width)*float64(cannonX)-1, -.95, 0, 1)
 	cannonMVP.Scale(width, width, 1, 1) // 10% size
 	glc.UniformMatrix4fv(game.P, cannonMVP.Data())
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufCannon)
 	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
 	glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
+
+	// Missiles
+	glc.Uniform4f(game.color, .9, .9, .4, 1) // yellow
+	for miss := range game.missiles {
+	}
 
 	glc.DisableVertexAttribArray(game.position)
 }

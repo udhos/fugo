@@ -96,14 +96,20 @@ SERVICE:
 
 				log.Printf("fuel was=%v is=%v", fuel, playerFuel(i.player))
 
+				missileSpeed := float32(.2 / 1.0) // 20% every 1 second
+				now := time.Now()
 				miss1 := &msg.Missile{
 					CoordX: i.player.cannonCoordX,
+					Speed:  missileSpeed,
 					Team:   0,
+					Start:  now,
 				}
 				w.missileList = append(w.missileList, miss1)
 				miss2 := &msg.Missile{
 					CoordX: i.player.cannonCoordX,
+					Speed:  missileSpeed,
 					Team:   1,
+					Start:  now,
 				}
 				w.missileList = append(w.missileList, miss2)
 			}
@@ -121,10 +127,13 @@ SERVICE:
 }
 
 func updateWorld(w *world) {
-	for _, c := range w.playerTab {
-		// calculate position
-		c.cannonCoordX, c.cannonSpeed = future.CannonX(c.cannonCoordX, c.cannonSpeed, time.Since(c.cannonStart))
-		c.cannonStart = time.Now()
+	now := time.Now()
+	for _, p := range w.playerTab {
+		p.cannonCoordX, p.cannonSpeed = future.CannonX(p.cannonCoordX, p.cannonSpeed, time.Since(p.cannonStart))
+		p.cannonStart = now
+	}
+	for _, m := range w.missileList {
+		m.CoordY = future.MissileY(0, m.Speed, time.Since(m.Start))
 	}
 }
 
@@ -141,7 +150,7 @@ func sendUpdatesToPlayer(w *world, p *player) {
 		WorldMissiles: w.missileList,
 	}
 
-	log.Printf("sending updates to player %v", p)
+	//log.Printf("sending updates to player %v", p)
 
 	p.output <- update
 }

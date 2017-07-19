@@ -29,3 +29,12 @@ func CannonX(initial float32, rate float32, elap time.Duration) (float32, float3
 	}
 	return x, rate
 }
+
+// MissileY calculates new value after elap delta time interval. 0.0 to 1.0
+func MissileY(initial float32, rate float32, elap time.Duration) float32 {
+	y := initial + rate*float32(int64(elap))/1000000000
+	if y > 1 {
+		y = 1
+	}
+	return y
+}
