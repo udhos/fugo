@@ -16,7 +16,7 @@ func Fuel(initial float32, elap time.Duration) float32 {
 	return fuel
 }
 
-// CannonX calculates new value after elap delta time interval.
+// CannonX calculates new value after elap delta time interval. 0.0 to 1.0
 func CannonX(initial float32, rate float32, elap time.Duration) (float32, float32) {
 	x := initial + rate*float32(int64(elap))/1000000000
 	switch {

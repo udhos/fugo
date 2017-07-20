@@ -48,6 +48,7 @@ type gameState struct {
 	playerFuel        float32
 	playerCannonX     float32
 	playerCannonSpeed float32
+	playerTeam        int
 	updateInterval    time.Duration
 	updateLast        time.Time
 	missiles          []*msg.Missile
@@ -182,6 +183,7 @@ func main() {
 				game.resize(t.WidthPx, t.HeightPx)
 			case msg.Update:
 				//log.Printf("app.Main event update: %v", t)
+				game.playerTeam = t.Team
 				game.playerFuel = t.Fuel
 				game.playerCannonX = t.CannonX
 				game.playerCannonSpeed = t.CannonSpeed
@@ -309,6 +311,7 @@ func (game *gameState) stop() {
 func (game *gameState) paint() {
 	glc := game.gl // shortcut
 
+	now := time.Now()
 	elap := time.Since(game.updateLast)
 
 	glc.Clear(gl.COLOR_BUFFER_BIT) // draw ClearColor background
@@ -337,7 +340,6 @@ func (game *gameState) paint() {
 	glc.Uniform4f(game.color, .9, .9, .9, 1) // white
 	squareMVP := goglmath.NewMatrix4Identity()
 	squareMVP.Translate(-1, -1, 0, 1)
-	//fuel := float64(game.playerFuel)
 	fuel := float64(future.Fuel(game.playerFuel, elap))
 	squareMVP.Scale(2*fuel/10, .04, 1, 1) // width is fuel, heigh is 5%
 	glc.UniformMatrix4fv(game.P, squareMVP.Data())
@@ -349,9 +351,9 @@ func (game *gameState) paint() {
 	glc.Uniform4f(game.color, .6, .6, .9, 1) // blue
 	cannonMVP := goglmath.NewMatrix4Identity()
 	cannonX, _ := future.CannonX(game.playerCannonX, game.playerCannonSpeed, elap)
-	width := .1 // 10%
-	cannonMVP.Translate((2-width)*float64(cannonX)-1, -.95, 0, 1)
-	cannonMVP.Scale(width, width, 1, 1) // 10% size
+	cannonWidth := .1 // 10%
+	cannonMVP.Translate((2-cannonWidth)*float64(cannonX)-1, -.95, 0, 1)
+	cannonMVP.Scale(cannonWidth, cannonWidth, 1, 1) // 10% size
 	glc.UniformMatrix4fv(game.P, cannonMVP.Data())
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufCannon)
 	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
@@ -359,7 +361,25 @@ func (game *gameState) paint() {
 
 	// Missiles
 	glc.Uniform4f(game.color, .9, .9, .4, 1) // yellow
-	for miss := range game.missiles {
+	for _, miss := range game.missiles {
+		missileMVP := goglmath.NewMatrix4Identity()
+		width := .01                    // 1%
+		height := .07                   // 7%
+		x := float64(miss.CoordX)*2 - 1 // FIXME use both cannon and missile widths
+		y := float64(future.MissileY(0, miss.Speed, now.Sub(miss.Start)))
+		if miss.Team == game.playerTeam {
+			// upward
+			y = y*2 - 1 // FIXME use heights
+		} else {
+			// downward
+			y = 1 - y*2 // FIXME use heights
+		}
+		missileMVP.Translate(x, y, 0, 1)
+		missileMVP.Scale(width, height, 1, 1)
+		glc.UniformMatrix4fv(game.P, missileMVP.Data())
+		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
+		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+		glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
 	}
 
 	glc.DisableVertexAttribArray(game.position)

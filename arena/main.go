@@ -55,18 +55,22 @@ func main() {
 
 	ticker := time.NewTicker(w.updateInterval)
 
+	team := 0
+
 	log.Printf("main: entering service loop")
 SERVICE:
 	for {
 		select {
 		case p := <-w.playerAdd:
-			log.Printf("player add: %v", p)
+			log.Printf("player add: %v team=%d", p, team)
 			w.playerTab = append(w.playerTab, p)
 
 			p.fuelStart = time.Now() // reset fuel
 			p.cannonStart = p.fuelStart
 			p.cannonSpeed = float32(.1 / 1.0) // 10% every 1 second
 			p.cannonCoordX = .8               // 80%
+			p.team = team
+			team = (team + 1) % 2 // switch next team
 		case p := <-w.playerDel:
 			log.Printf("player del: %v", p)
 			for i, pl := range w.playerTab {
