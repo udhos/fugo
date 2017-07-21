@@ -100,32 +100,32 @@ SERVICE:
 
 				log.Printf("fuel was=%v is=%v", fuel, playerFuel(i.player))
 
-				missileSpeed := float32(.2 / 1.0) // 20% every 1 second
+				missileSpeed := float32(.5 / 1.0) // 50% every 1 second
 				now := time.Now()
 				miss1 := &msg.Missile{
 					CoordX: i.player.cannonCoordX,
 					Speed:  missileSpeed,
-					Team:   0,
+					Team:   i.player.team,
 					Start:  now,
 				}
 				w.missileList = append(w.missileList, miss1)
-				miss2 := &msg.Missile{
-					CoordX: i.player.cannonCoordX,
-					Speed:  missileSpeed,
-					Team:   1,
-					Start:  now,
-				}
-				w.missileList = append(w.missileList, miss2)
+				/*
+					miss2 := &msg.Missile{
+						CoordX: i.player.cannonCoordX,
+						Speed:  missileSpeed,
+						Team:   1,
+						Start:  now,
+					}
+					w.missileList = append(w.missileList, miss2)
+				*/
+
+				updateWorld(&w)
 			}
 
 		case <-ticker.C:
 			//log.Printf("tick: %v", t)
 
 			updateWorld(&w)
-
-			for _, c := range w.playerTab {
-				sendUpdatesToPlayer(&w, c)
-			}
 		}
 	}
 }
@@ -138,6 +138,10 @@ func updateWorld(w *world) {
 	}
 	for _, m := range w.missileList {
 		m.CoordY = future.MissileY(0, m.Speed, time.Since(m.Start))
+	}
+
+	for _, c := range w.playerTab {
+		sendUpdatesToPlayer(w, c)
 	}
 }
 
@@ -152,6 +156,7 @@ func sendUpdatesToPlayer(w *world, p *player) {
 		CannonSpeed:   p.cannonSpeed,
 		Interval:      w.updateInterval,
 		WorldMissiles: w.missileList,
+		Team:          p.team,
 	}
 
 	//log.Printf("sending updates to player %v", p)

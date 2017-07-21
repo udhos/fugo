@@ -152,7 +152,7 @@ func main() {
 
 				if now := time.Now().Second(); now != sec {
 					// once per second event
-					log.Printf("requests: %d, paints: %d", paintRequests, paints)
+					log.Printf("requests: %d, paints: %d, team=%d", paintRequests, paints, game.playerTeam)
 					paintRequests = 0
 					paints = 0
 					sec = now
