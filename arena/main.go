@@ -65,7 +65,8 @@ SERVICE:
 			log.Printf("player add: %v team=%d", p, team)
 			w.playerTab = append(w.playerTab, p)
 
-			p.fuelStart = time.Now() // reset fuel
+			//p.fuelStart = time.Now() // reset fuel
+			playerFuelSet(p, time.Now(), 5) // reset fuel to 50%
 			p.cannonStart = p.fuelStart
 			p.cannonSpeed = float32(.1 / 1.0) // 10% every 1 second
 			p.cannonCoordX = .8               // 80%
@@ -94,11 +95,12 @@ SERVICE:
 				}
 
 				if fuel >= 10 {
-					i.player.fuelStart = time.Now().Add(-time.Duration(float32(time.Second) * 10 / future.FuelRechargeRate))
+					//i.player.fuelStart = time.Now().Add(-time.Duration(float32(time.Second) * 10 / future.FuelRechargeRate))
+					playerFuelSet(i.player, time.Now(), 9)
+				} else {
+					playerFuelSet(i.player, time.Now(), fuel-1)
 				}
-				i.player.fuelStart = i.player.fuelStart.Add(time.Duration(float32(time.Second) / future.FuelRechargeRate))
-
-				log.Printf("fuel was=%v is=%v", fuel, playerFuel(i.player))
+				//i.player.fuelStart = i.player.fuelStart.Add(time.Duration(float32(time.Second) / future.FuelRechargeRate))
 
 				missileSpeed := float32(.5 / 1.0) // 50% every 1 second
 				now := time.Now()
@@ -109,15 +111,8 @@ SERVICE:
 					Start:  now,
 				}
 				w.missileList = append(w.missileList, miss1)
-				/*
-					miss2 := &msg.Missile{
-						CoordX: i.player.cannonCoordX,
-						Speed:  missileSpeed,
-						Team:   1,
-						Start:  now,
-					}
-					w.missileList = append(w.missileList, miss2)
-				*/
+
+				log.Printf("fuel was=%v is=%v missiles=%d", fuel, playerFuel(i.player), len(w.missileList))
 
 				updateWorld(&w)
 			}
@@ -136,9 +131,22 @@ func updateWorld(w *world) {
 		p.cannonCoordX, p.cannonSpeed = future.CannonX(p.cannonCoordX, p.cannonSpeed, time.Since(p.cannonStart))
 		p.cannonStart = now
 	}
-	for _, m := range w.missileList {
+
+	size := len(w.missileList)
+	for i := 0; i < size; i++ {
+		m := w.missileList[i]
 		m.CoordY = future.MissileY(0, m.Speed, time.Since(m.Start))
+		if m.CoordY >= 1 {
+			size--
+			if i >= size {
+				// last element
+				break
+			}
+			w.missileList[i] = w.missileList[i+1]
+			i--
+		}
 	}
+	w.missileList = w.missileList[:size]
 
 	for _, c := range w.playerTab {
 		sendUpdatesToPlayer(w, c)
@@ -147,6 +155,10 @@ func updateWorld(w *world) {
 
 func playerFuel(p *player) float32 {
 	return future.Fuel(0, time.Since(p.fuelStart))
+}
+
+func playerFuelSet(p *player, now time.Time, fuel float32) {
+	p.fuelStart = now.Add(-time.Duration(float32(time.Second) * fuel / future.FuelRechargeRate))
 }
 
 func sendUpdatesToPlayer(w *world, p *player) {
