@@ -148,8 +148,8 @@ func updateWorld(w *world) {
 	}
 	w.missileList = w.missileList[:size]
 
-	for _, c := range w.playerTab {
-		sendUpdatesToPlayer(w, c)
+	for _, p := range w.playerTab {
+		sendUpdatesToPlayer(w, p)
 	}
 }
 
@@ -169,6 +169,16 @@ func sendUpdatesToPlayer(w *world, p *player) {
 		Interval:      w.updateInterval,
 		WorldMissiles: w.missileList,
 		Team:          p.team,
+	}
+
+	for _, p := range w.playerTab {
+		cannon := msg.Cannon{
+			Start:  p.cannonStart,
+			CoordX: p.cannonCoordX,
+			Speed:  p.cannonSpeed,
+			Team:   p.team,
+		}
+		update.Cannons = append(update.Cannons, &cannon)
 	}
 
 	//log.Printf("sending updates to player %v", p)

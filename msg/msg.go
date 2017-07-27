@@ -11,7 +11,8 @@ type Update struct {
 	CannonSpeed   float32
 	Interval      time.Duration
 	WorldMissiles []*Missile
-	Team          int
+	Cannons       []*Cannon
+	Team          int // notify player about his team
 }
 
 // Fire message is sent from client to server.
@@ -25,4 +26,12 @@ type Missile struct {
 	Speed  float32
 	Team   int
 	Start  time.Time
+}
+
+// Cannon belongs to player.
+type Cannon struct {
+	Start  time.Time
+	CoordX float32
+	Speed  float32
+	Team   int
 }
