@@ -29,26 +29,24 @@ import (
 )
 
 type gameState struct {
-	width         int
-	height        int
-	gl            gl.Context
-	program       gl.Program
-	bufTriangle   gl.Buffer
-	bufSquare     gl.Buffer
-	bufSquareWire gl.Buffer
-	bufCannon     gl.Buffer
-	bufCannonDown gl.Buffer
-	position      gl.Attrib
-	P             gl.Uniform // projection mat4 uniform
-	color         gl.Uniform
-	proj          goglmath.Matrix4
-	shaderVert    string
-	shaderFrag    string
-	serverAddr    string
-	serverOutput  chan msg.Fire
-	playerFuel    float32
-	//playerCannonX     float32
-	//playerCannonSpeed float32
+	width          int
+	height         int
+	gl             gl.Context
+	program        gl.Program
+	bufTriangle    gl.Buffer
+	bufSquare      gl.Buffer
+	bufSquareWire  gl.Buffer
+	bufCannon      gl.Buffer
+	bufCannonDown  gl.Buffer
+	position       gl.Attrib
+	P              gl.Uniform // projection mat4 uniform
+	color          gl.Uniform
+	proj           goglmath.Matrix4
+	shaderVert     string
+	shaderFrag     string
+	serverAddr     string
+	serverOutput   chan msg.Fire
+	playerFuel     float32
 	playerTeam     int
 	updateInterval time.Duration
 	updateLast     time.Time
@@ -187,8 +185,6 @@ func main() {
 				//log.Printf("app.Main event update: %v", t)
 				game.playerTeam = t.Team
 				game.playerFuel = t.Fuel
-				//game.playerCannonX = t.CannonX
-				//game.playerCannonSpeed = t.CannonSpeed
 				game.updateInterval = t.Interval
 				game.missiles = t.WorldMissiles
 				game.cannons = t.Cannons
@@ -355,19 +351,6 @@ func (game *gameState) paint() {
 	glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
 
 	cannonWidth := .1 // 10%
-
-	// Cannon
-	/*
-		glc.Uniform4f(game.color, .6, .6, .9, 1) // blue
-		cannonMVP := goglmath.NewMatrix4Identity()
-		cannonX, _ := future.CannonX(game.playerCannonX, game.playerCannonSpeed, elap)
-		cannonMVP.Translate((2-cannonWidth)*float64(cannonX)-1, -.95, 0, 1)
-		cannonMVP.Scale(cannonWidth, cannonWidth, 1, 1) // 10% size
-		glc.UniformMatrix4fv(game.P, cannonMVP.Data())
-		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufCannon)
-		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
-		glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
-	*/
 
 	// Cannons
 	glc.Uniform4f(game.color, .9, .2, .2, 1) // red

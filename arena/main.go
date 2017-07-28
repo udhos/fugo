@@ -65,7 +65,6 @@ SERVICE:
 			log.Printf("player add: %v team=%d", p, team)
 			w.playerTab = append(w.playerTab, p)
 
-			//p.fuelStart = time.Now() // reset fuel
 			playerFuelSet(p, time.Now(), 5) // reset fuel to 50%
 			p.cannonStart = p.fuelStart
 			p.cannonSpeed = float32(.1 / 1.0) // 10% every 1 second
@@ -83,11 +82,11 @@ SERVICE:
 			}
 			log.Printf("player not found: %v", p)
 		case i := <-w.input:
-			log.Printf("input: %v", i)
+			//log.Printf("input: %v", i)
 
-			switch m := i.msg.(type) {
+			switch i.msg.(type) {
 			case msg.Fire:
-				log.Printf("input fire: %v", m)
+				//log.Printf("input fire: %v", m)
 
 				fuel := playerFuel(i.player)
 				if fuel < 1 {
@@ -95,12 +94,10 @@ SERVICE:
 				}
 
 				if fuel >= 10 {
-					//i.player.fuelStart = time.Now().Add(-time.Duration(float32(time.Second) * 10 / future.FuelRechargeRate))
 					playerFuelSet(i.player, time.Now(), 9)
 				} else {
 					playerFuelSet(i.player, time.Now(), fuel-1)
 				}
-				//i.player.fuelStart = i.player.fuelStart.Add(time.Duration(float32(time.Second) / future.FuelRechargeRate))
 
 				missileSpeed := float32(.5 / 1.0) // 50% every 1 second
 				now := time.Now()
@@ -112,7 +109,7 @@ SERVICE:
 				}
 				w.missileList = append(w.missileList, miss1)
 
-				log.Printf("fuel was=%v is=%v missiles=%d", fuel, playerFuel(i.player), len(w.missileList))
+				log.Printf("input fire - fuel was=%v is=%v missiles=%d", fuel, playerFuel(i.player), len(w.missileList))
 
 				updateWorld(&w)
 			}
@@ -163,9 +160,7 @@ func playerFuelSet(p *player, now time.Time, fuel float32) {
 
 func sendUpdatesToPlayer(w *world, p *player) {
 	update := msg.Update{
-		Fuel: playerFuel(p),
-		//CannonX:       p.cannonCoordX,
-		//CannonSpeed:   p.cannonSpeed,
+		Fuel:          playerFuel(p),
 		Interval:      w.updateInterval,
 		WorldMissiles: w.missileList,
 		Team:          p.team,

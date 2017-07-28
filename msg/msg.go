@@ -6,9 +6,7 @@ import (
 
 // Update message is sent from server do client.
 type Update struct {
-	Fuel float32
-	//CannonX       float32
-	//CannonSpeed   float32
+	Fuel          float32
 	Interval      time.Duration // notify client about update interval
 	WorldMissiles []*Missile
 	Cannons       []*Cannon
