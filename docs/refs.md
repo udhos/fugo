@@ -6,3 +6,5 @@ https://github.com/tbogdala/eweygewey - OpenGL immediate-mode GUI library
 https://pt.slideshare.net/takuyaueda967/go-for-mobile-games
 
 https://github.com/200sc/klangsynthese - audio
+
+https://github.com/faiface/beep - brings sound to any Go program
