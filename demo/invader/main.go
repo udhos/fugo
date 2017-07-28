@@ -29,29 +29,31 @@ import (
 )
 
 type gameState struct {
-	width             int
-	height            int
-	gl                gl.Context
-	program           gl.Program
-	bufTriangle       gl.Buffer
-	bufSquare         gl.Buffer
-	bufSquareWire     gl.Buffer
-	bufCannon         gl.Buffer
-	position          gl.Attrib
-	P                 gl.Uniform // projection mat4 uniform
-	color             gl.Uniform
-	proj              goglmath.Matrix4
-	shaderVert        string
-	shaderFrag        string
-	serverAddr        string
-	serverOutput      chan msg.Fire
-	playerFuel        float32
-	playerCannonX     float32
-	playerCannonSpeed float32
-	playerTeam        int
-	updateInterval    time.Duration
-	updateLast        time.Time
-	missiles          []*msg.Missile
+	width         int
+	height        int
+	gl            gl.Context
+	program       gl.Program
+	bufTriangle   gl.Buffer
+	bufSquare     gl.Buffer
+	bufSquareWire gl.Buffer
+	bufCannon     gl.Buffer
+	bufCannonDown gl.Buffer
+	position      gl.Attrib
+	P             gl.Uniform // projection mat4 uniform
+	color         gl.Uniform
+	proj          goglmath.Matrix4
+	shaderVert    string
+	shaderFrag    string
+	serverAddr    string
+	serverOutput  chan msg.Fire
+	playerFuel    float32
+	//playerCannonX     float32
+	//playerCannonSpeed float32
+	playerTeam     int
+	updateInterval time.Duration
+	updateLast     time.Time
+	missiles       []*msg.Missile
+	cannons        []*msg.Cannon
 }
 
 func newGame() (*gameState, error) {
@@ -185,10 +187,11 @@ func main() {
 				//log.Printf("app.Main event update: %v", t)
 				game.playerTeam = t.Team
 				game.playerFuel = t.Fuel
-				game.playerCannonX = t.CannonX
-				game.playerCannonSpeed = t.CannonSpeed
+				//game.playerCannonX = t.CannonX
+				//game.playerCannonSpeed = t.CannonSpeed
 				game.updateInterval = t.Interval
 				game.missiles = t.WorldMissiles
+				game.cannons = t.Cannons
 				game.updateLast = time.Now()
 			}
 		}
@@ -282,6 +285,10 @@ func (game *gameState) start(glc gl.Context) {
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufCannon)
 	glc.BufferData(gl.ARRAY_BUFFER, cannonData, gl.STATIC_DRAW)
 
+	game.bufCannonDown = glc.CreateBuffer()
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufCannonDown)
+	glc.BufferData(gl.ARRAY_BUFFER, cannonDownData, gl.STATIC_DRAW)
+
 	game.position = glc.GetAttribLocation(game.program, "position")
 	game.P = glc.GetUniformLocation(game.program, "P")
 	game.color = glc.GetUniformLocation(game.program, "color")
@@ -347,17 +354,42 @@ func (game *gameState) paint() {
 	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
 	glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
 
-	// Cannon
-	glc.Uniform4f(game.color, .6, .6, .9, 1) // blue
-	cannonMVP := goglmath.NewMatrix4Identity()
-	cannonX, _ := future.CannonX(game.playerCannonX, game.playerCannonSpeed, elap)
 	cannonWidth := .1 // 10%
-	cannonMVP.Translate((2-cannonWidth)*float64(cannonX)-1, -.95, 0, 1)
-	cannonMVP.Scale(cannonWidth, cannonWidth, 1, 1) // 10% size
-	glc.UniformMatrix4fv(game.P, cannonMVP.Data())
-	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufCannon)
-	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
-	glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
+
+	// Cannon
+	/*
+		glc.Uniform4f(game.color, .6, .6, .9, 1) // blue
+		cannonMVP := goglmath.NewMatrix4Identity()
+		cannonX, _ := future.CannonX(game.playerCannonX, game.playerCannonSpeed, elap)
+		cannonMVP.Translate((2-cannonWidth)*float64(cannonX)-1, -.95, 0, 1)
+		cannonMVP.Scale(cannonWidth, cannonWidth, 1, 1) // 10% size
+		glc.UniformMatrix4fv(game.P, cannonMVP.Data())
+		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufCannon)
+		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+		glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
+	*/
+
+	// Cannons
+	glc.Uniform4f(game.color, .9, .2, .2, 1) // red
+	for _, can := range game.cannons {
+		var canBuf gl.Buffer
+		var y float64
+		if can.Team == game.playerTeam {
+			y = -.95
+			canBuf = game.bufCannon
+		} else {
+			y = 1
+			canBuf = game.bufCannonDown
+		}
+		MVP := goglmath.NewMatrix4Identity()
+		cannonX, _ := future.CannonX(can.CoordX, can.Speed, elap)
+		MVP.Translate((2-cannonWidth)*float64(cannonX)-1, y, 0, 1)
+		MVP.Scale(cannonWidth, cannonWidth, 1, 1) // 10% size
+		glc.UniformMatrix4fv(game.P, MVP.Data())
+		glc.BindBuffer(gl.ARRAY_BUFFER, canBuf)
+		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+		glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
+	}
 
 	// Missiles
 	glc.Uniform4f(game.color, .9, .9, .4, 1) // yellow
@@ -403,6 +435,12 @@ var cannonData = f32.Bytes(binary.LittleEndian,
 	0.5, 1.0, 0.0,
 	0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0,
+)
+
+var cannonDownData = f32.Bytes(binary.LittleEndian,
+	0.5, -1.0, 0.0,
+	1.0, 0.0, 0.0,
+	0.0, 0.0, 0.0,
 )
 
 var squareData = f32.Bytes(binary.LittleEndian,

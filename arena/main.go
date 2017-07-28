@@ -163,9 +163,9 @@ func playerFuelSet(p *player, now time.Time, fuel float32) {
 
 func sendUpdatesToPlayer(w *world, p *player) {
 	update := msg.Update{
-		Fuel:          playerFuel(p),
-		CannonX:       p.cannonCoordX,
-		CannonSpeed:   p.cannonSpeed,
+		Fuel: playerFuel(p),
+		//CannonX:       p.cannonCoordX,
+		//CannonSpeed:   p.cannonSpeed,
 		Interval:      w.updateInterval,
 		WorldMissiles: w.missileList,
 		Team:          p.team,
