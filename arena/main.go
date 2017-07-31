@@ -132,10 +132,8 @@ func updateWorld(w *world) {
 	size := len(w.missileList)
 	for i := 0; i < size; i++ {
 		m := w.missileList[i]
-		y := m.CoordY
 		m.CoordY = future.MissileY(0, m.Speed, time.Since(m.Start))
 		if m.CoordY >= 1 {
-			log.Printf("kill missile y=%v was=%v size=%d", m.CoordY, y, size)
 			size--
 			if i >= size {
 				// last element
