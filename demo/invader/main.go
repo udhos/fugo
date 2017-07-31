@@ -42,7 +42,7 @@ type gameState struct {
 	P                      gl.Uniform // projection mat4 uniform
 	color                  gl.Uniform
 	minX, maxX, minY, maxY float64
-	proj                   goglmath.Matrix4
+	//proj                   goglmath.Matrix4
 	shaderVert             string
 	shaderFrag             string
 	serverAddr             string
@@ -241,7 +241,7 @@ func (game *gameState) resize(w, h int) {
 		game.maxY = 1
 	}
 
-	goglmath.SetOrthoMatrix(&game.proj, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
+	//goglmath.SetOrthoMatrix(&game.proj, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
 }
 
 func (game *gameState) input(press, release bool, x, y float32) {
@@ -354,6 +354,7 @@ func (game *gameState) paint() {
 	glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
 
 	cannonWidth := .1 // 10%
+	cannonHeight := .1 // 10%
 
 	// Cannons
 	glc.Uniform4f(game.color, .9, .2, .2, 1) // red
@@ -361,16 +362,23 @@ func (game *gameState) paint() {
 		var canBuf gl.Buffer
 		var y float64
 		if can.Team == game.playerTeam {
+			// upward
 			y = -.95
 			canBuf = game.bufCannon
 		} else {
+			// downward
 			y = 1
 			canBuf = game.bufCannonDown
 		}
-		MVP := goglmath.NewMatrix4Identity()
+		// x: from 0.0,1.0 to minX,(maxX-width)
+		//MVP := goglmath.NewMatrix4Identity()
+		var MVP goglmath.Matrix4
+		goglmath.SetOrthoMatrix(&MVP, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
 		cannonX, _ := future.CannonX(can.CoordX, can.Speed, elap)
-		MVP.Translate((2-cannonWidth)*float64(cannonX)-1, y, 0, 1)
-		MVP.Scale(cannonWidth, cannonWidth, 1, 1) // 10% size
+		x := float64(cannonX) * (game.maxX - cannonWidth - game.minX) + game.minX
+		//MVP.Translate((2-cannonWidth)*float64(cannonX)-1, y, 0, 1)
+		MVP.Translate(x, y, 0, 1)
+		MVP.Scale(cannonWidth, cannonHeight, 1, 1) // 10% size
 		glc.UniformMatrix4fv(game.P, MVP.Data())
 		glc.BindBuffer(gl.ARRAY_BUFFER, canBuf)
 		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
