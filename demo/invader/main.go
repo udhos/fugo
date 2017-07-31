@@ -29,29 +29,30 @@ import (
 )
 
 type gameState struct {
-	width          int
-	height         int
-	gl             gl.Context
-	program        gl.Program
-	bufTriangle    gl.Buffer
-	bufSquare      gl.Buffer
-	bufSquareWire  gl.Buffer
-	bufCannon      gl.Buffer
-	bufCannonDown  gl.Buffer
-	position       gl.Attrib
-	P              gl.Uniform // projection mat4 uniform
-	color          gl.Uniform
-	proj           goglmath.Matrix4
-	shaderVert     string
-	shaderFrag     string
-	serverAddr     string
-	serverOutput   chan msg.Fire
-	playerFuel     float32
-	playerTeam     int
-	updateInterval time.Duration
-	updateLast     time.Time
-	missiles       []*msg.Missile
-	cannons        []*msg.Cannon
+	width   int
+	height  int
+	gl      gl.Context
+	program gl.Program
+	//bufTriangle    gl.Buffer
+	bufSquare              gl.Buffer
+	bufSquareWire          gl.Buffer
+	bufCannon              gl.Buffer
+	bufCannonDown          gl.Buffer
+	position               gl.Attrib
+	P                      gl.Uniform // projection mat4 uniform
+	color                  gl.Uniform
+	minX, maxX, minY, maxY float64
+	proj                   goglmath.Matrix4
+	shaderVert             string
+	shaderFrag             string
+	serverAddr             string
+	serverOutput           chan msg.Fire
+	playerFuel             float32
+	playerTeam             int
+	updateInterval         time.Duration
+	updateLast             time.Time
+	missiles               []*msg.Missile
+	cannons                []*msg.Cannon
 }
 
 func newGame() (*gameState, error) {
@@ -226,23 +227,21 @@ func (game *gameState) resize(w, h int) {
 
 	glc.Viewport(0, 0, w, h)
 
-	var minX, maxX, minY, maxY float64
-
 	if h >= w {
 		aspect := float64(h) / float64(w)
-		minX = -1
-		maxX = 1
-		minY = -aspect
-		maxY = aspect
+		game.minX = -1
+		game.maxX = 1
+		game.minY = -aspect
+		game.maxY = aspect
 	} else {
 		aspect := float64(w) / float64(h)
-		minX = -aspect
-		maxX = aspect
-		minY = -1
-		maxY = 1
+		game.minX = -aspect
+		game.maxX = aspect
+		game.minY = -1
+		game.maxY = 1
 	}
 
-	goglmath.SetOrthoMatrix(&game.proj, minX, maxX, minY, maxY, -1, 1)
+	goglmath.SetOrthoMatrix(&game.proj, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
 }
 
 func (game *gameState) input(press, release bool, x, y float32) {
@@ -265,9 +264,9 @@ func (game *gameState) start(glc gl.Context) {
 
 	log.Printf("start: shader compiled")
 
-	game.bufTriangle = glc.CreateBuffer()
-	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufTriangle)
-	glc.BufferData(gl.ARRAY_BUFFER, triangleData, gl.STATIC_DRAW)
+	//game.bufTriangle = glc.CreateBuffer()
+	//glc.BindBuffer(gl.ARRAY_BUFFER, game.bufTriangle)
+	//glc.BufferData(gl.ARRAY_BUFFER, triangleData, gl.STATIC_DRAW)
 
 	game.bufSquare = glc.CreateBuffer()
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
@@ -302,9 +301,11 @@ func (game *gameState) stop() {
 	glc := game.gl // shortcut
 
 	glc.DeleteProgram(game.program)
-	glc.DeleteBuffer(game.bufTriangle)
+	//glc.DeleteBuffer(game.bufTriangle)
 	glc.DeleteBuffer(game.bufSquare)
 	glc.DeleteBuffer(game.bufSquareWire)
+	glc.DeleteBuffer(game.bufCannon)
+	glc.DeleteBuffer(game.bufCannonDown)
 
 	game.gl = nil
 
@@ -325,10 +326,12 @@ func (game *gameState) paint() {
 	glc.Uniform4f(game.color, .5, .9, .5, 1) // green
 
 	// Draw orthorgraphic triangle
-	glc.UniformMatrix4fv(game.P, game.proj.Data())
-	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufTriangle)
-	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
-	glc.DrawArrays(gl.TRIANGLES, 0, triangleVertexCount)
+	/*
+		glc.UniformMatrix4fv(game.P, game.proj.Data())
+		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufTriangle)
+		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+		glc.DrawArrays(gl.TRIANGLES, 0, triangleVertexCount)
+	*/
 
 	// Wire rectangle around fuel bar
 	squareWireMVP := goglmath.NewMatrix4Identity()
@@ -401,18 +404,20 @@ func (game *gameState) paint() {
 }
 
 const (
-	coordsPerVertex       = 3
-	triangleVertexCount   = 3
+	coordsPerVertex = 3
+	//triangleVertexCount   = 3
 	cannonVertexCount     = 3
 	squareVertexCount     = 6
 	squareWireVertexCount = 4
 )
 
+/*
 var triangleData = f32.Bytes(binary.LittleEndian,
 	0.0, 1.0, 0.0, // top left
 	0.0, 0.0, 0.0, // bottom left
 	1.0, 0.0, 0.0, // bottom right
 )
+*/
 
 var cannonData = f32.Bytes(binary.LittleEndian,
 	0.5, 1.0, 0.0,
