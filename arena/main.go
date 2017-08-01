@@ -166,12 +166,13 @@ func sendUpdatesToPlayer(w *world, p *player) {
 		Team:          p.team,
 	}
 
-	for _, p := range w.playerTab {
+	for _, p1 := range w.playerTab {
 		cannon := msg.Cannon{
-			Start:  p.cannonStart,
-			CoordX: p.cannonCoordX,
-			Speed:  p.cannonSpeed,
-			Team:   p.team,
+			Start:  p1.cannonStart,
+			CoordX: p1.cannonCoordX,
+			Speed:  p1.cannonSpeed,
+			Team:   p1.team,
+			Player: p1 == p,
 		}
 		update.Cannons = append(update.Cannons, &cannon)
 	}

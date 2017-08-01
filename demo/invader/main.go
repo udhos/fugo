@@ -358,8 +358,13 @@ func (game *gameState) paint() {
 	cannonHeight := .1 // 10%
 
 	// Cannons
-	glc.Uniform4f(game.color, .9, .2, .2, 1) // red
 	for _, can := range game.cannons {
+		if can.Player {
+			glc.Uniform4f(game.color, .5, .9, .5, 1) // green
+		} else {
+			glc.Uniform4f(game.color, .9, .2, .2, 1) // red
+		}
+
 		var canBuf gl.Buffer
 		var y float64
 		if can.Team == game.playerTeam {

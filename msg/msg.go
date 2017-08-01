@@ -32,4 +32,5 @@ type Cannon struct {
 	CoordX float32
 	Speed  float32
 	Team   int
+	Player bool // belongs to player
 }
