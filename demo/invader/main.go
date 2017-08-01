@@ -43,16 +43,16 @@ type gameState struct {
 	color                  gl.Uniform
 	minX, maxX, minY, maxY float64
 	//proj                   goglmath.Matrix4
-	shaderVert             string
-	shaderFrag             string
-	serverAddr             string
-	serverOutput           chan msg.Fire
-	playerFuel             float32
-	playerTeam             int
-	updateInterval         time.Duration
-	updateLast             time.Time
-	missiles               []*msg.Missile
-	cannons                []*msg.Cannon
+	shaderVert     string
+	shaderFrag     string
+	serverAddr     string
+	serverOutput   chan msg.Fire
+	playerFuel     float32
+	playerTeam     int
+	updateInterval time.Duration
+	updateLast     time.Time
+	missiles       []*msg.Missile
+	cannons        []*msg.Cannon
 }
 
 func newGame() (*gameState, error) {
@@ -343,17 +343,18 @@ func (game *gameState) paint() {
 	glc.DrawArrays(gl.LINE_LOOP, 0, squareWireVertexCount)
 
 	// Fuel bar
+	fuelHeight := .04
 	glc.Uniform4f(game.color, .9, .9, .9, 1) // white
 	squareMVP := goglmath.NewMatrix4Identity()
 	squareMVP.Translate(-1, -1, 0, 1)
 	fuel := float64(future.Fuel(game.playerFuel, elap))
-	squareMVP.Scale(2*fuel/10, .04, 1, 1) // width is fuel, heigh is 5%
+	squareMVP.Scale(2*fuel/10, fuelHeight, 1, 1) // width is fuel
 	glc.UniformMatrix4fv(game.P, squareMVP.Data())
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
 	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
 	glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
 
-	cannonWidth := .1 // 10%
+	cannonWidth := .1  // 10%
 	cannonHeight := .1 // 10%
 
 	// Cannons
@@ -363,11 +364,12 @@ func (game *gameState) paint() {
 		var y float64
 		if can.Team == game.playerTeam {
 			// upward
-			y = -.95
+			//y = -.95
+			y = game.minY + fuelHeight + .01
 			canBuf = game.bufCannon
 		} else {
 			// downward
-			y = 1
+			y = game.maxY
 			canBuf = game.bufCannonDown
 		}
 		// x: from 0.0,1.0 to minX,(maxX-width)
@@ -375,7 +377,7 @@ func (game *gameState) paint() {
 		var MVP goglmath.Matrix4
 		goglmath.SetOrthoMatrix(&MVP, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
 		cannonX, _ := future.CannonX(can.CoordX, can.Speed, elap)
-		x := float64(cannonX) * (game.maxX - cannonWidth - game.minX) + game.minX
+		x := float64(cannonX)*(game.maxX-cannonWidth-game.minX) + game.minX
 		//MVP.Translate((2-cannonWidth)*float64(cannonX)-1, y, 0, 1)
 		MVP.Translate(x, y, 0, 1)
 		MVP.Scale(cannonWidth, cannonHeight, 1, 1) // 10% size
