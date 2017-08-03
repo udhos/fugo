@@ -395,17 +395,22 @@ func (game *gameState) paint() {
 	// Missiles
 	glc.Uniform4f(game.color, .9, .9, .4, 1) // yellow
 	for _, miss := range game.missiles {
-		missileMVP := goglmath.NewMatrix4Identity()
-		width := .01                    // 1%
-		height := .07                   // 7%
-		x := float64(miss.CoordX)*2 - 1 // FIXME use both cannon and missile widths
+		//missileMVP := goglmath.NewMatrix4Identity()
+		var missileMVP goglmath.Matrix4
+		goglmath.SetOrthoMatrix(&missileMVP, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
+		width := .03  // 1%
+		height := .07 // 7%
+		//x := float64(miss.CoordX)*2 - 1 // FIXME use both cannon and missile widths
+		x := float64(miss.CoordX)*(game.maxX-game.minX) + game.minX // FIXME use both cannon and missile widths
 		y := float64(future.MissileY(0, miss.Speed, now.Sub(miss.Start)))
 		if miss.Team == game.playerTeam {
 			// upward
-			y = y*2 - 1 // FIXME use heights
+			//y = y*2 - 1 // FIXME use heights
+			y = y*(game.maxY-game.minY) + game.minY
 		} else {
 			// downward
-			y = 1 - y*2 // FIXME use heights
+			//y = 1 - y*2 // FIXME use heights
+			y = -(y*(game.maxY-game.minY) + game.minY)
 		}
 		missileMVP.Translate(x, y, 0, 1)
 		missileMVP.Scale(width, height, 1, 1)
