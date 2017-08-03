@@ -56,7 +56,12 @@ type gameState struct {
 }
 
 func newGame() (*gameState, error) {
-	game := &gameState{}
+	game := &gameState{
+		minX: -1,
+		maxX: 1,
+		minY: -1,
+		maxY: 1,
+	}
 
 	vert, errVert := loadFull("shader.vert")
 	if errVert != nil {
