@@ -397,6 +397,15 @@ func (game *gameState) paint() {
 		glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
 	}
 
+	draw := func(x, y, w, h float64, MVP goglmath.Matrix4) {
+		MVP.Translate(x, y, 0, 1)
+		MVP.Scale(w, h, 1, 1)
+		glc.UniformMatrix4fv(game.P, MVP.Data())
+		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
+		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+		glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
+	}
+
 	// Missiles
 	glc.Uniform4f(game.color, .9, .9, .4, 1) // yellow
 	for _, miss := range game.missiles {
@@ -408,21 +417,28 @@ func (game *gameState) paint() {
 		//x := float64(miss.CoordX)*2 - 1 // FIXME use both cannon and missile widths
 		x := float64(miss.CoordX)*(game.maxX-game.minX) + game.minX // FIXME use both cannon and missile widths
 		y := float64(future.MissileY(0, miss.Speed, now.Sub(miss.Start)))
+		minY := game.minY
+		maxY := game.maxY - height
 		if miss.Team == game.playerTeam {
 			// upward
-			//y = y*2 - 1 // FIXME use heights
-			y = y*(game.maxY-game.minY) + game.minY
+			y = y*(maxY-minY) + minY
 		} else {
 			// downward
-			//y = 1 - y*2 // FIXME use heights
-			y = -(y*(game.maxY-game.minY) + game.minY)
+			y = y*(minY-maxY) + maxY
+
 		}
-		missileMVP.Translate(x, y, 0, 1)
-		missileMVP.Scale(width, height, 1, 1)
-		glc.UniformMatrix4fv(game.P, missileMVP.Data())
-		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
-		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
-		glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
+		/*
+			missileMVP.Translate(x, y, 0, 1)
+			missileMVP.Scale(width, height, 1, 1)
+			glc.UniformMatrix4fv(game.P, missileMVP.Data())
+			glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
+			glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+			glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
+		*/
+		draw(x, y, width, height, missileMVP) // this does not draw on galaxy tab a
+		draw(x, -.5, width, height, missileMVP)
+		draw(x, 0, width, height, missileMVP)
+		draw(x, .5, width, height, missileMVP)
 	}
 
 	glc.DisableVertexAttribArray(game.position)
