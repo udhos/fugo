@@ -68,7 +68,7 @@ SERVICE:
 			playerFuelSet(p, time.Now(), 5) // reset fuel to 50%
 			p.cannonStart = p.fuelStart
 			p.cannonSpeed = float32(.1 / 1.0) // 10% every 1 second
-			p.cannonCoordX = .8               // 80%
+			p.cannonCoordX = .5               // 50%
 			p.team = team
 			team = (team + 1) % 2 // switch next team
 		case p := <-w.playerDel:
@@ -99,11 +99,11 @@ SERVICE:
 					playerFuelSet(i.player, time.Now(), fuel-1)
 				}
 
-				missileSpeed := float32(.5 / 1.0) // 50% every 1 second
+				//missileSpeed := float32(.5 / 1.0) // 50% every 1 second
 				now := time.Now()
 				miss1 := &msg.Missile{
 					CoordX: i.player.cannonCoordX,
-					Speed:  missileSpeed,
+					Speed:  .5, // 50% every 1 second
 					Team:   i.player.team,
 					Start:  now,
 				}
@@ -132,7 +132,8 @@ func updateWorld(w *world) {
 	size := len(w.missileList)
 	for i := 0; i < size; i++ {
 		m := w.missileList[i]
-		m.CoordY = future.MissileY(0, m.Speed, time.Since(m.Start))
+		m.CoordY = future.MissileY(m.CoordY, m.Speed, time.Since(m.Start))
+		m.Start = now
 		if m.CoordY >= 1 {
 			size--
 			if i >= size {

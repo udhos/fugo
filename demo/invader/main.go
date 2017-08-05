@@ -225,13 +225,6 @@ func (game *gameState) resize(w, h int) {
 	game.width = w
 	game.height = h
 
-	glc := game.gl // shortcut
-	if glc == nil {
-		return
-	}
-
-	glc.Viewport(0, 0, w, h)
-
 	if h >= w {
 		aspect := float64(h) / float64(w)
 		game.minX = -1
@@ -245,6 +238,15 @@ func (game *gameState) resize(w, h int) {
 		game.minY = -1
 		game.maxY = 1
 	}
+
+	log.Printf("resize: %v,%v,%v,%v", game.minX, game.maxX, game.minY, game.maxY)
+
+	glc := game.gl // shortcut
+	if glc == nil {
+		return
+	}
+
+	glc.Viewport(0, 0, w, h)
 
 	//goglmath.SetOrthoMatrix(&game.proj, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
 }
@@ -320,7 +322,7 @@ func (game *gameState) stop() {
 func (game *gameState) paint() {
 	glc := game.gl // shortcut
 
-	now := time.Now()
+	//now := time.Now()
 	elap := time.Since(game.updateLast)
 
 	glc.Clear(gl.COLOR_BUFFER_BIT) // draw ClearColor background
@@ -416,8 +418,9 @@ func (game *gameState) paint() {
 		height := .07 // 7%
 		//x := float64(miss.CoordX)*2 - 1 // FIXME use both cannon and missile widths
 		x := float64(miss.CoordX)*(game.maxX-game.minX) + game.minX // FIXME use both cannon and missile widths
-		y := float64(future.MissileY(0, miss.Speed, now.Sub(miss.Start)))
-		minY := game.minY
+		//y := float64(future.MissileY(0, miss.Speed, now.Sub(miss.Start)))
+		y := float64(future.MissileY(miss.CoordY, miss.Speed, elap))
+		minY := game.minY + fuelHeight
 		maxY := game.maxY - height
 		if miss.Team == game.playerTeam {
 			// upward
