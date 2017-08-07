@@ -7,7 +7,7 @@ import (
 // FuelRechargeRate is number of units recharged per second.
 const FuelRechargeRate = float32(1.0 / 3.0) // 1 unit every 3 seconds
 
-// Fuel calculates new value after elap delta time interval.
+// Fuel calculates new value after elap delta time interval. 0.0 to 10.0
 func Fuel(initial float32, elap time.Duration) float32 {
 	fuel := initial + FuelRechargeRate*float32(int64(elap))/float32(time.Second)
 	if fuel > 10 {
