@@ -340,6 +340,10 @@ func (game *gameState) stop() {
 	log.Printf("stop: shader disposed")
 }
 
+func (game *gameState) setOrtho(m *goglmath.Matrix4) {
+	goglmath.SetOrthoMatrix(m, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
+}
+
 func (game *gameState) paint() {
 	glc := game.gl // shortcut
 
@@ -352,22 +356,47 @@ func (game *gameState) paint() {
 
 	glc.Uniform4f(game.color, .5, .9, .5, 1) // green
 
+	screenWidth := game.maxX - game.minX
+
+	// buttons
+	buttonHeight := .2 * (game.maxY - game.minY)
+	buttons := 5
+	buttonWidth := screenWidth / float64(buttons)
+	for i := 0; i < buttons; i++ {
+		//squareWireMVP := goglmath.NewMatrix4Identity()
+		var squareWireMVP goglmath.Matrix4
+		game.setOrtho(&squareWireMVP)
+		x := game.minX + float64(i)*buttonWidth
+		squareWireMVP.Translate(x, game.minY, .1, 1) // z=.1 put in front of fuel bar
+		squareWireMVP.Scale(buttonWidth, buttonHeight, 1, 1)
+		glc.UniformMatrix4fv(game.P, squareWireMVP.Data())
+		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareWire)
+		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+		glc.DrawArrays(gl.LINE_LOOP, 0, squareWireVertexCount)
+	}
+
+	fuelBottom := game.minY + buttonHeight
+	fuelHeight := .04
+
 	// Wire rectangle around fuel bar
-	squareWireMVP := goglmath.NewMatrix4Identity()
-	squareWireMVP.Translate(-1, -1, .1, 1) // z=.1 put in front of fuel bar
-	squareWireMVP.Scale(2, .04, 1, 1)
+	//squareWireMVP := goglmath.NewMatrix4Identity()
+	var squareWireMVP goglmath.Matrix4
+	game.setOrtho(&squareWireMVP)
+	squareWireMVP.Translate(game.minX, fuelBottom, .1, 1) // z=.1 put in front of fuel bar
+	squareWireMVP.Scale(screenWidth, fuelHeight, 1, 1)
 	glc.UniformMatrix4fv(game.P, squareWireMVP.Data())
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareWire)
 	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
 	glc.DrawArrays(gl.LINE_LOOP, 0, squareWireVertexCount)
 
 	// Fuel bar
-	fuelHeight := .04
 	glc.Uniform4f(game.color, .9, .9, .9, 1) // white
-	squareMVP := goglmath.NewMatrix4Identity()
-	squareMVP.Translate(-1, -1, 0, 1)
+	//squareMVP := goglmath.NewMatrix4Identity()
+	var squareMVP goglmath.Matrix4
+	game.setOrtho(&squareMVP)
+	squareMVP.Translate(game.minX, fuelBottom, 0, 1)
 	fuel := float64(future.Fuel(game.playerFuel, elap))
-	squareMVP.Scale(2*fuel/10, fuelHeight, 1, 1) // width is fuel
+	squareMVP.Scale(screenWidth*fuel/10, fuelHeight, 1, 1) // width is fuel
 	glc.UniformMatrix4fv(game.P, squareMVP.Data())
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
 	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
@@ -375,6 +404,8 @@ func (game *gameState) paint() {
 
 	cannonWidth := .1  // 10%
 	cannonHeight := .1 // 10%
+
+	cannonBottom := fuelBottom + fuelHeight + .01
 
 	// Cannons
 	for _, can := range game.cannons {
@@ -388,7 +419,7 @@ func (game *gameState) paint() {
 		var y float64
 		if can.Team == game.playerTeam {
 			// upward
-			y = game.minY + fuelHeight + .01
+			y = cannonBottom
 			canBuf = game.bufCannon
 		} else {
 			// downward
@@ -396,7 +427,8 @@ func (game *gameState) paint() {
 			canBuf = game.bufCannonDown
 		}
 		var MVP goglmath.Matrix4
-		goglmath.SetOrthoMatrix(&MVP, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
+		//goglmath.SetOrthoMatrix(&MVP, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
+		game.setOrtho(&MVP)
 		cannonX, _ := future.CannonX(can.CoordX, can.Speed, elap)
 		x := float64(cannonX)*(game.maxX-cannonWidth-game.minX) + game.minX
 		MVP.Translate(x, y, 0, 1)
@@ -407,18 +439,21 @@ func (game *gameState) paint() {
 		glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
 	}
 
+	missileBottom := cannonBottom + cannonHeight
+	missileWidth := .03
+	missileHeight := .07
+
 	// Missiles
 	glc.Uniform4f(game.color, .9, .9, .4, 1) // yellow
 	for _, miss := range game.missiles {
 		//missileMVP := goglmath.NewMatrix4Identity()
 		var missileMVP goglmath.Matrix4
-		goglmath.SetOrthoMatrix(&missileMVP, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
-		width := .03                                                // 1%
-		height := .07                                               // 7%
+		//goglmath.SetOrthoMatrix(&missileMVP, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
+		game.setOrtho(&missileMVP)
 		x := float64(miss.CoordX)*(game.maxX-game.minX) + game.minX // FIXME use both cannon and missile widths
 		y := float64(future.MissileY(miss.CoordY, miss.Speed, elap))
-		minY := game.minY + fuelHeight + .01
-		maxY := game.maxY - height
+		minY := missileBottom
+		maxY := game.maxY - missileHeight
 		if miss.Team == game.playerTeam {
 			// upward
 			y = y*(maxY-minY) + minY
@@ -428,7 +463,7 @@ func (game *gameState) paint() {
 
 		}
 		missileMVP.Translate(x, y, 0, 1)
-		missileMVP.Scale(width, height, 1, 1)
+		missileMVP.Scale(missileWidth, missileHeight, 1, 1)
 		glc.UniformMatrix4fv(game.P, missileMVP.Data())
 		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
 		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
