@@ -26,6 +26,7 @@ import (
 
 	"github.com/udhos/fugo/future"
 	"github.com/udhos/fugo/msg"
+	"github.com/udhos/fugo/trace"
 )
 
 type gameState struct {
@@ -53,6 +54,7 @@ type gameState struct {
 	updateLast     time.Time
 	missiles       []*msg.Missile
 	cannons        []*msg.Cannon
+	tracer         *trace.Trace
 }
 
 func newGame() (*gameState, error) {
@@ -86,6 +88,19 @@ func newGame() (*gameState, error) {
 
 	log.Printf("server: [%s]", game.serverAddr)
 
+	tracer, errTrace := loadFull("trace.txt")
+	if errTrace != nil {
+		log.Printf("trace file: %v", errTrace)
+	} else {
+		tracer := strings.TrimSpace(string(tracer))
+		log.Printf("tracer: [%s]", tracer)
+		game.tracer, errTrace = trace.New(tracer)
+		if errTrace != nil {
+			log.Printf("trace sock: %v", errTrace)
+		}
+	}
+	log.Printf("tracer: %v", game.tracer)
+
 	game.updateInterval = time.Second
 	game.updateLast = time.Now()
 
@@ -98,6 +113,14 @@ func main() {
 	log.Print("main begin")
 
 	slowPaint := len(os.Args) > 1
+
+	if !slowPaint {
+		_, errSlow := loadFull("slow.txt")
+		if errSlow == nil {
+			slowPaint = true
+		}
+	}
+
 	log.Printf("slowPaint: %v", slowPaint)
 
 	var paintRequests int
@@ -216,6 +239,13 @@ func loadFull(name string) ([]byte, error) {
 	}
 	log.Printf("loaded: %s (%d bytes)", name, len(buf))
 	return buf, nil
+}
+
+func (game *gameState) tracef(format string, v ...interface{}) {
+	if game.tracer == nil {
+		return
+	}
+	game.tracer.Printf(format, v...)
 }
 
 func (game *gameState) resize(w, h int) {
@@ -399,14 +429,16 @@ func (game *gameState) paint() {
 		glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
 	}
 
-	draw := func(x, y, w, h float64, MVP goglmath.Matrix4) {
-		MVP.Translate(x, y, 0, 1)
-		MVP.Scale(w, h, 1, 1)
-		glc.UniformMatrix4fv(game.P, MVP.Data())
-		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
-		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
-		glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
-	}
+	/*
+		draw := func(x, y, w, h float64, MVP goglmath.Matrix4) {
+			MVP.Translate(x, y, 0, 1)
+			MVP.Scale(w, h, 1, 1)
+			glc.UniformMatrix4fv(game.P, MVP.Data())
+			glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
+			glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+			glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
+		}
+	*/
 
 	// Missiles
 	glc.Uniform4f(game.color, .9, .9, .4, 1) // yellow
@@ -438,10 +470,19 @@ func (game *gameState) paint() {
 			glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
 			glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
 		*/
-		draw(x, y, width, height, missileMVP) // this does not draw on galaxy tab a
-		draw(x, -.5, width, height, missileMVP)
-		draw(x, 0, width, height, missileMVP)
-		draw(x, .5, width, height, missileMVP)
+		/*
+			game.tracef("y=%v\n", y)
+			draw(x, y, width, height, missileMVP) // this does not draw on galaxy tab a
+			draw(x, -.5, width, height, missileMVP)
+			draw(x, 0, width, height, missileMVP)
+			draw(x, .5, width, height, missileMVP)
+		*/
+		missileMVP.Translate(x, y, 0, 1)
+		missileMVP.Scale(width, height, 1, 1)
+		glc.UniformMatrix4fv(game.P, missileMVP.Data())
+		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
+		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+		glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
 	}
 
 	glc.DisableVertexAttribArray(game.position)

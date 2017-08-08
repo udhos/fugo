@@ -76,6 +76,7 @@ get github.com/udhos/goglmath
 
 check future
 check msg
+check trace
 if [ "$1" != arena ]; then
 	mobilebuild demo/triangle
 	mobilebuild demo/invader
