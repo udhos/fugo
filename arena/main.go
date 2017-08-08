@@ -99,7 +99,6 @@ SERVICE:
 					playerFuelSet(i.player, time.Now(), fuel-1)
 				}
 
-				//missileSpeed := float32(.5 / 1.0) // 50% every 1 second
 				now := time.Now()
 				miss1 := &msg.Missile{
 					CoordX: i.player.cannonCoordX,

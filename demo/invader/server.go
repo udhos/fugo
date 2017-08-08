@@ -17,7 +17,7 @@ func serverHandler(a app.App, serverAddr string, output <-chan msg.Fire) {
 	// reconnect loop
 	for {
 		log.Printf("serverHandler: opening %s", serverAddr)
-		conn, errDial := net.Dial("tcp", serverAddr)
+		conn, errDial := net.DialTimeout("tcp", serverAddr, 3*time.Second)
 		if errDial != nil {
 			log.Printf("serverHandler: error %s: %v", serverAddr, errDial)
 		} else {

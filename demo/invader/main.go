@@ -30,11 +30,10 @@ import (
 )
 
 type gameState struct {
-	width   int
-	height  int
-	gl      gl.Context
-	program gl.Program
-	//bufTriangle    gl.Buffer
+	width                  int
+	height                 int
+	gl                     gl.Context
+	program                gl.Program
 	bufSquare              gl.Buffer
 	bufSquareWire          gl.Buffer
 	bufCannon              gl.Buffer
@@ -43,18 +42,17 @@ type gameState struct {
 	P                      gl.Uniform // projection mat4 uniform
 	color                  gl.Uniform
 	minX, maxX, minY, maxY float64
-	//proj                   goglmath.Matrix4
-	shaderVert     string
-	shaderFrag     string
-	serverAddr     string
-	serverOutput   chan msg.Fire
-	playerFuel     float32
-	playerTeam     int
-	updateInterval time.Duration
-	updateLast     time.Time
-	missiles       []*msg.Missile
-	cannons        []*msg.Cannon
-	tracer         *trace.Trace
+	shaderVert             string
+	shaderFrag             string
+	serverAddr             string
+	serverOutput           chan msg.Fire
+	playerFuel             float32
+	playerTeam             int
+	updateInterval         time.Duration
+	updateLast             time.Time
+	missiles               []*msg.Missile
+	cannons                []*msg.Cannon
+	tracer                 *trace.Trace
 }
 
 func newGame() (*gameState, error) {
@@ -277,8 +275,6 @@ func (game *gameState) resize(w, h int) {
 	}
 
 	glc.Viewport(0, 0, w, h)
-
-	//goglmath.SetOrthoMatrix(&game.proj, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
 }
 
 func (game *gameState) input(press, release bool, x, y float32) {
@@ -300,10 +296,6 @@ func (game *gameState) start(glc gl.Context) {
 	}
 
 	log.Printf("start: shader compiled")
-
-	//game.bufTriangle = glc.CreateBuffer()
-	//glc.BindBuffer(gl.ARRAY_BUFFER, game.bufTriangle)
-	//glc.BufferData(gl.ARRAY_BUFFER, triangleData, gl.STATIC_DRAW)
 
 	game.bufSquare = glc.CreateBuffer()
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
@@ -338,7 +330,6 @@ func (game *gameState) stop() {
 	glc := game.gl // shortcut
 
 	glc.DeleteProgram(game.program)
-	//glc.DeleteBuffer(game.bufTriangle)
 	glc.DeleteBuffer(game.bufSquare)
 	glc.DeleteBuffer(game.bufSquareWire)
 	glc.DeleteBuffer(game.bufCannon)
@@ -352,7 +343,6 @@ func (game *gameState) stop() {
 func (game *gameState) paint() {
 	glc := game.gl // shortcut
 
-	//now := time.Now()
 	elap := time.Since(game.updateLast)
 
 	glc.Clear(gl.COLOR_BUFFER_BIT) // draw ClearColor background
@@ -361,14 +351,6 @@ func (game *gameState) paint() {
 	glc.EnableVertexAttribArray(game.position)
 
 	glc.Uniform4f(game.color, .5, .9, .5, 1) // green
-
-	// Draw orthorgraphic triangle
-	/*
-		glc.UniformMatrix4fv(game.P, game.proj.Data())
-		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufTriangle)
-		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
-		glc.DrawArrays(gl.TRIANGLES, 0, triangleVertexCount)
-	*/
 
 	// Wire rectangle around fuel bar
 	squareWireMVP := goglmath.NewMatrix4Identity()
@@ -406,7 +388,6 @@ func (game *gameState) paint() {
 		var y float64
 		if can.Team == game.playerTeam {
 			// upward
-			//y = -.95
 			y = game.minY + fuelHeight + .01
 			canBuf = game.bufCannon
 		} else {
@@ -414,13 +395,10 @@ func (game *gameState) paint() {
 			y = game.maxY
 			canBuf = game.bufCannonDown
 		}
-		// x: from 0.0,1.0 to minX,(maxX-width)
-		//MVP := goglmath.NewMatrix4Identity()
 		var MVP goglmath.Matrix4
 		goglmath.SetOrthoMatrix(&MVP, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
 		cannonX, _ := future.CannonX(can.CoordX, can.Speed, elap)
 		x := float64(cannonX)*(game.maxX-cannonWidth-game.minX) + game.minX
-		//MVP.Translate((2-cannonWidth)*float64(cannonX)-1, y, 0, 1)
 		MVP.Translate(x, y, 0, 1)
 		MVP.Scale(cannonWidth, cannonHeight, 1, 1) // 10% size
 		glc.UniformMatrix4fv(game.P, MVP.Data())
@@ -429,30 +407,17 @@ func (game *gameState) paint() {
 		glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
 	}
 
-	/*
-		draw := func(x, y, w, h float64, MVP goglmath.Matrix4) {
-			MVP.Translate(x, y, 0, 1)
-			MVP.Scale(w, h, 1, 1)
-			glc.UniformMatrix4fv(game.P, MVP.Data())
-			glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
-			glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
-			glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
-		}
-	*/
-
 	// Missiles
 	glc.Uniform4f(game.color, .9, .9, .4, 1) // yellow
 	for _, miss := range game.missiles {
 		//missileMVP := goglmath.NewMatrix4Identity()
 		var missileMVP goglmath.Matrix4
 		goglmath.SetOrthoMatrix(&missileMVP, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
-		width := .03  // 1%
-		height := .07 // 7%
-		//x := float64(miss.CoordX)*2 - 1 // FIXME use both cannon and missile widths
+		width := .03                                                // 1%
+		height := .07                                               // 7%
 		x := float64(miss.CoordX)*(game.maxX-game.minX) + game.minX // FIXME use both cannon and missile widths
-		//y := float64(future.MissileY(0, miss.Speed, now.Sub(miss.Start)))
 		y := float64(future.MissileY(miss.CoordY, miss.Speed, elap))
-		minY := game.minY + fuelHeight
+		minY := game.minY + fuelHeight + .01
 		maxY := game.maxY - height
 		if miss.Team == game.playerTeam {
 			// upward
@@ -462,21 +427,6 @@ func (game *gameState) paint() {
 			y = y*(minY-maxY) + maxY
 
 		}
-		/*
-			missileMVP.Translate(x, y, 0, 1)
-			missileMVP.Scale(width, height, 1, 1)
-			glc.UniformMatrix4fv(game.P, missileMVP.Data())
-			glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
-			glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
-			glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
-		*/
-		/*
-			game.tracef("y=%v\n", y)
-			draw(x, y, width, height, missileMVP) // this does not draw on galaxy tab a
-			draw(x, -.5, width, height, missileMVP)
-			draw(x, 0, width, height, missileMVP)
-			draw(x, .5, width, height, missileMVP)
-		*/
 		missileMVP.Translate(x, y, 0, 1)
 		missileMVP.Scale(width, height, 1, 1)
 		glc.UniformMatrix4fv(game.P, missileMVP.Data())
@@ -489,20 +439,11 @@ func (game *gameState) paint() {
 }
 
 const (
-	coordsPerVertex = 3
-	//triangleVertexCount   = 3
+	coordsPerVertex       = 3
 	cannonVertexCount     = 3
 	squareVertexCount     = 6
 	squareWireVertexCount = 4
 )
-
-/*
-var triangleData = f32.Bytes(binary.LittleEndian,
-	0.0, 1.0, 0.0, // top left
-	0.0, 0.0, 0.0, // bottom left
-	1.0, 0.0, 0.0, // bottom right
-)
-*/
 
 var cannonData = f32.Bytes(binary.LittleEndian,
 	0.5, 1.0, 0.0,
