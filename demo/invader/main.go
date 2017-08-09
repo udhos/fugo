@@ -45,7 +45,7 @@ type gameState struct {
 	shaderVert             string
 	shaderFrag             string
 	serverAddr             string
-	serverOutput           chan msg.Fire
+	serverOutput           chan msg.Button
 	playerFuel             float32
 	playerTeam             int
 	updateInterval         time.Duration
@@ -102,7 +102,7 @@ func newGame() (*gameState, error) {
 	game.updateInterval = time.Second
 	game.updateLast = time.Now()
 
-	game.serverOutput = make(chan msg.Fire)
+	game.serverOutput = make(chan msg.Button)
 
 	return game, nil
 }
@@ -131,7 +131,7 @@ func main() {
 	}
 
 	gob.Register(msg.Update{})
-	gob.Register(msg.Fire{})
+	gob.Register(msg.Button{})
 
 	app.Main(func(a app.App) {
 		log.Print("app.Main begin")
@@ -277,11 +277,19 @@ func (game *gameState) resize(w, h int) {
 	glc.Viewport(0, 0, w, h)
 }
 
-func (game *gameState) input(press, release bool, x, y float32) {
-	log.Printf("input: event press=%v %f,%f (%d x %d)", press, x, y, game.width, game.height)
+func (game *gameState) input(press, release bool, pixelX, pixelY float32) {
+	log.Printf("input: event press=%v %f,%f (%d x %d)", press, pixelX, pixelY, game.width, game.height)
 
 	if press {
-		game.serverOutput <- msg.Fire{}
+		//x := float64(pixelX) / float64(game.width-1) * (game.maxX - game.minX) + game.minX
+		y := float64(pixelY)/float64(game.height-1)*(game.minY-game.maxY) + game.maxY
+
+		if y < (game.minY + game.buttonEdge()) {
+			// might hit button
+			pixelsPerButton := float32(game.width) / float32(buttons)
+			b := pixelX / pixelsPerButton
+			game.serverOutput <- msg.Button{Id: int(b)}
+		}
 	}
 }
 
@@ -344,6 +352,13 @@ func (game *gameState) setOrtho(m *goglmath.Matrix4) {
 	goglmath.SetOrthoMatrix(m, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
 }
 
+const buttons = 5
+
+func (game *gameState) buttonEdge() float64 {
+	screenWidth := game.maxX - game.minX
+	return screenWidth / float64(buttons)
+}
+
 func (game *gameState) paint() {
 	glc := game.gl // shortcut
 
@@ -358,10 +373,10 @@ func (game *gameState) paint() {
 
 	screenWidth := game.maxX - game.minX
 
-	// buttons
-	buttonHeight := .2 * (game.maxY - game.minY)
-	buttons := 5
-	buttonWidth := screenWidth / float64(buttons)
+	//buttonWidth := screenWidth / float64(buttons)
+	buttonWidth := game.buttonEdge()
+	//buttonHeight := .2 * (game.maxY - game.minY)
+	buttonHeight := game.buttonEdge()
 	for i := 0; i < buttons; i++ {
 		//squareWireMVP := goglmath.NewMatrix4Identity()
 		var squareWireMVP goglmath.Matrix4

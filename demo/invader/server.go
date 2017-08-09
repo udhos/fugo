@@ -11,7 +11,7 @@ import (
 	"github.com/udhos/fugo/msg"
 )
 
-func serverHandler(a app.App, serverAddr string, output <-chan msg.Fire) {
+func serverHandler(a app.App, serverAddr string, output <-chan msg.Button) {
 	log.Printf("serverHandler: starting %s", serverAddr)
 
 	// reconnect loop
@@ -48,7 +48,7 @@ func readLoop(a app.App, conn net.Conn) {
 	log.Printf("readLoop: exiting")
 }
 
-func writeLoop(conn net.Conn, quit <-chan struct{}, output <-chan msg.Fire) {
+func writeLoop(conn net.Conn, quit <-chan struct{}, output <-chan msg.Button) {
 	log.Printf("writeLoop: goroutine starting")
 	// copy from output channel into socket
 	enc := gob.NewEncoder(conn)

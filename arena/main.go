@@ -84,9 +84,22 @@ SERVICE:
 		case i := <-w.input:
 			//log.Printf("input: %v", i)
 
-			switch i.msg.(type) {
-			case msg.Fire:
-				//log.Printf("input fire: %v", m)
+			switch m := i.msg.(type) {
+			case msg.Button:
+				log.Printf("input button: %v", m)
+
+				if m.Id == msg.ButtonTurn {
+					p := i.player
+					//p.cannonCoordX, p.cannonSpeed = future.CannonX(p.cannonCoordX, p.cannonSpeed, time.Since(p.cannonStart))
+					updateCannon(p, time.Now())
+					p.cannonSpeed = -p.cannonSpeed
+					updateWorld(&w)
+					continue SERVICE
+				}
+
+				if m.Id != msg.ButtonFire {
+					continue SERVICE // non-fire button
+				}
 
 				fuel := playerFuel(i.player)
 				if fuel < 1 {
@@ -121,11 +134,15 @@ SERVICE:
 	}
 }
 
+func updateCannon(p *player, now time.Time) {
+	p.cannonCoordX, p.cannonSpeed = future.CannonX(p.cannonCoordX, p.cannonSpeed, time.Since(p.cannonStart))
+	p.cannonStart = now
+}
+
 func updateWorld(w *world) {
 	now := time.Now()
 	for _, p := range w.playerTab {
-		p.cannonCoordX, p.cannonSpeed = future.CannonX(p.cannonCoordX, p.cannonSpeed, time.Since(p.cannonStart))
-		p.cannonStart = now
+		updateCannon(p, now)
 	}
 
 	size := len(w.missileList)
@@ -192,7 +209,7 @@ func listenAndServe(w *world, addr string) error {
 	}
 
 	gob.Register(msg.Update{})
-	gob.Register(msg.Fire{})
+	gob.Register(msg.Button{})
 
 	go func() {
 		for {
@@ -225,7 +242,7 @@ func connHandler(w *world, conn net.Conn) {
 		// copy from socket into input channel
 		dec := gob.NewDecoder(conn)
 		for {
-			var m msg.Fire
+			var m msg.Button
 			if err := dec.Decode(&m); err != nil {
 				log.Printf("handler: Decode: %v", err)
 				break

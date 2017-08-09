@@ -13,8 +13,14 @@ type Update struct {
 	Team          int // notify player about his team
 }
 
+const (
+	ButtonFire = 0
+	ButtonTurn = 1
+)
+
 // Fire message is sent from client to server.
-type Fire struct {
+type Button struct {
+	Id int
 }
 
 // Missile is issued by cannons.
