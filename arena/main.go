@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/gob"
+	"flag"
 	"fmt"
 	"log"
 	"net"
-	"os"
 	"time"
 
 	"github.com/udhos/fugo/future"
@@ -38,10 +38,13 @@ type player struct {
 }
 
 func main() {
-	addr := ":8080"
-	if len(os.Args) > 1 {
-		addr = os.Args[1]
-	}
+
+	var addr string
+
+	flag.StringVar(&addr, "addr", ":8080", "listen address")
+
+	flag.Parse()
+
 	w := world{
 		playerTab:      []*player{},
 		playerAdd:      make(chan *player),
@@ -50,7 +53,12 @@ func main() {
 		input:          make(chan inputMsg),
 	}
 	if errListen := listenAndServe(&w, addr); errListen != nil {
-		log.Printf("main: %v", errListen)
+		log.Printf("main: listen: %v", errListen)
+		return
+	}
+
+	if errDisc := lanDiscovery(addr); errDisc != nil {
+		log.Printf("main: discovery: %v", errDisc)
 		return
 	}
 
