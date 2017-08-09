@@ -213,9 +213,11 @@ func sendUpdatesToPlayer(w *world, p *player) {
 
 func listenAndServe(w *world, addr string) error {
 
-	log.Printf("serving on TCP %s", addr)
+	proto := "tcp"
 
-	listener, errListen := net.Listen("tcp", addr)
+	log.Printf("serving on %s %s", proto, addr)
+
+	listener, errListen := net.Listen(proto, addr)
 	if errListen != nil {
 		return fmt.Errorf("listenAndServe: %s: %v", addr, errListen)
 	}
