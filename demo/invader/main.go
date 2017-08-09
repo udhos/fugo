@@ -465,15 +465,19 @@ func (game *gameState) paint() {
 		var missileMVP goglmath.Matrix4
 		//goglmath.SetOrthoMatrix(&missileMVP, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
 		game.setOrtho(&missileMVP)
-		x := float64(miss.CoordX)*(game.maxX-game.minX) + game.minX // FIXME use both cannon and missile widths
+		minX := game.minX + .5*cannonWidth - .5*missileWidth
+		maxX := game.maxX - .5*cannonWidth - .5*missileWidth
+		x := float64(miss.CoordX)*(maxX-minX) + minX
 		y := float64(future.MissileY(miss.CoordY, miss.Speed, elap))
-		minY := missileBottom
-		maxY := game.maxY - missileHeight
 		if miss.Team == game.playerTeam {
 			// upward
+			minY := missileBottom
+			maxY := game.maxY - missileHeight
 			y = y*(maxY-minY) + minY
 		} else {
 			// downward
+			minY := cannonBottom
+			maxY := game.maxY - cannonHeight
 			y = y*(minY-maxY) + maxY
 
 		}
