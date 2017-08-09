@@ -19,6 +19,7 @@ type world struct {
 	input          chan inputMsg
 	updateInterval time.Duration
 	missileList    []*msg.Missile
+	teamCount      [2]int
 }
 
 type inputMsg struct {
@@ -55,27 +56,29 @@ func main() {
 
 	ticker := time.NewTicker(w.updateInterval)
 
-	team := 0
-
 	log.Printf("main: entering service loop")
 SERVICE:
 	for {
 		select {
 		case p := <-w.playerAdd:
-			log.Printf("player add: %v team=%d", p, team)
+			p.team = 0
+			if w.teamCount[0] > w.teamCount[1] {
+				p.team = 1
+			}
+			log.Printf("player add: %v team=%d team0=%d team1=%d", p, p.team, w.teamCount[0], w.teamCount[1])
 			w.playerTab = append(w.playerTab, p)
 
 			playerFuelSet(p, time.Now(), 5) // reset fuel to 50%
 			p.cannonStart = p.fuelStart
 			p.cannonSpeed = float32(.1 / 1.0) // 10% every 1 second
 			p.cannonCoordX = .5               // 50%
-			p.team = team
-			team = (team + 1) % 2 // switch next team
+			w.teamCount[p.team]++
 		case p := <-w.playerDel:
-			log.Printf("player del: %v", p)
+			log.Printf("player del: %v team=%d team0=%d team1=%d", p, p.team, w.teamCount[0], w.teamCount[1])
 			for i, pl := range w.playerTab {
 				if pl == p {
 					w.playerTab = append(w.playerTab[:i], w.playerTab[i+1:]...)
+					w.teamCount[p.team]--
 					log.Printf("player removed: %v", p)
 					continue SERVICE
 				}
