@@ -14,13 +14,15 @@ type Update struct {
 }
 
 const (
+	// ButtonFire ID
 	ButtonFire = 0
+	// ButtonTurn ID
 	ButtonTurn = 1
 )
 
-// Fire message is sent from client to server.
+// Button message is sent from client to server.
 type Button struct {
-	Id int
+	ID int
 }
 
 // Missile is issued by cannons.
