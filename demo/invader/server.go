@@ -4,9 +4,9 @@ import (
 	"encoding/gob"
 	"log"
 	"net"
+	"strconv"
 	"strings"
 	"time"
-	//"fmt"
 
 	"golang.org/x/mobile/app"
 	"golang.org/x/net/ipv4"
@@ -58,7 +58,9 @@ func serverHandler(a app.App, serverAddr string, output <-chan msg.Button) {
 func request() (string, error) {
 	timeout := 2 * time.Second
 
-	destAddr, errDest := net.ResolveUDPAddr("udp", "239.1.1.1:8888")
+	discAddr := "239.1.1.1:8888"
+
+	destAddr, errDest := net.ResolveUDPAddr("udp", discAddr)
 	if errDest != nil {
 		return "", errDest
 	}
@@ -107,7 +109,7 @@ func request() (string, error) {
 		return "", errSet
 	}
 
-	log.Printf("discovery request sent")
+	log.Printf("discovery request sent to %s", discAddr)
 
 	n, src, errRead := conn.ReadFrom(buf)
 	if errRead != nil {
@@ -117,15 +119,15 @@ func request() (string, error) {
 	srcHost := strings.Split(src.String(), ":")[0]
 
 	listen := strings.TrimSpace(string(buf[:n]))
-	hp := strings.Split(listen, ":")
-	var port string
-	if len(hp) > 1 {
-		port = hp[1]
-	}
 
 	log.Printf("discovery response received: src=%s listen=%s", src.String(), listen)
 
-	return srcHost + ":" + port, nil
+	listenAddr, errAddr := net.ResolveUDPAddr("udp", listen)
+	if errAddr != nil {
+		return "", errAddr
+	}
+
+	return srcHost + ":" + strconv.Itoa(listenAddr.Port), nil
 }
 
 func readLoop(a app.App, conn net.Conn) {
