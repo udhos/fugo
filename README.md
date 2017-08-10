@@ -49,7 +49,13 @@ Recipe:
     go get golang.org/x/mobile/cmd/gomobile
     gomobile init -ndk $NDK
 
-4\. Get fugo
+4\. Install OpenGL dev libs
+
+On Ubuntu you will need these:
+
+    sudo apt-get install libegl1-mesa-dev libgles2-mesa-dev libx11-dev
+
+5\. Get fugo
 
 Recipe:
 
@@ -57,7 +63,7 @@ Recipe:
 
 ## Building the INVADER application
 
-5\. Build for desktop
+6\. Build for desktop
 
 Recipe:
 
@@ -72,7 +78,7 @@ If you want smooth rendering, remove the parameter 'slow'.
 
 The subshell is used to temporarily enter the demo/invader dir in order to load assets from demo/invader/assets).
 
-6\. Build for Android
+7\. Build for Android
 
 Recipe:
 
@@ -82,7 +88,7 @@ Hint: Use 'gomobile build -x' to see what the build is doing.
 
     $ gomobile build -x github.com/udhos/fugo/demo/invader
 
-7\. Push into Android device
+8\. Push into Android device
 
 Recipe:
 
@@ -90,13 +96,13 @@ Recipe:
 
 ## Building the ARENA server
 
-8\. Build the server
+9\. Build the server
 
 Recipe:
 
     $ go install github.com/udhos/fugo/arena
 
-9\. Run the server
+10\. Run the server
 
     $ arena
 
