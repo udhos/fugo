@@ -72,7 +72,9 @@ get honnef.co/go/tools/cmd/unused
 get honnef.co/go/tools/cmd/gosimple
 get honnef.co/go/tools/cmd/staticcheck
 get github.com/golang/lint/golint
+
 get github.com/udhos/goglmath
+get golang.org/x/net/ipv4
 
 check future
 check msg

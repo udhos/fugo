@@ -35,6 +35,7 @@ func lanDiscovery(addr string) error {
 			if errWrite != nil {
 				log.Printf("write error to %v: %v", src, errWrite)
 			}
+			log.Printf("discovery: replied %s to %v", addr, src)
 		}
 	}()
 
