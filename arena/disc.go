@@ -18,7 +18,7 @@ func lanDiscovery(addr string) error {
 	}
 
 	conn, errListen := net.ListenMulticastUDP(proto, nil, udpAddr)
-	if errAddr != nil {
+	if errListen != nil {
 		return errListen
 	}
 
