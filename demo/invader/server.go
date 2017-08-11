@@ -116,18 +116,24 @@ func request() (string, error) {
 		return "", errRead
 	}
 
-	srcHost := strings.Split(src.String(), ":")[0]
-
 	listen := strings.TrimSpace(string(buf[:n]))
 
 	log.Printf("discovery response received: src=%s listen=%s", src.String(), listen)
+
+	srcAddr, errSrc := net.ResolveUDPAddr("udp", src.String())
+	if errSrc != nil {
+		return "", errSrc
+	}
+	srcHost := srcAddr.IP.String()
 
 	listenAddr, errAddr := net.ResolveUDPAddr("udp", listen)
 	if errAddr != nil {
 		return "", errAddr
 	}
 
-	return srcHost + ":" + strconv.Itoa(listenAddr.Port), nil
+	endpoint := srcHost + ":" + strconv.Itoa(listenAddr.Port)
+
+	return endpoint, nil
 }
 
 func readLoop(a app.App, conn net.Conn) {
