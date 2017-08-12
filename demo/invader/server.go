@@ -130,6 +130,10 @@ func request() (string, error) {
 	if errAddr != nil {
 		return "", errAddr
 	}
+	listenHost := listenAddr.IP.String()
+	if listenHost != "<nil>" {
+		srcHost = listenHost
+	}
 
 	endpoint := srcHost + ":" + strconv.Itoa(listenAddr.Port)
 
