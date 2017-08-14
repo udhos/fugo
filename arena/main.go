@@ -232,15 +232,16 @@ func listenAndServe(w *world, addr string) error {
 				log.Printf("accept on TCP %s: %s", addr, err)
 				continue
 			}
-			go connHandler(w, conn)
+			c, _ := conn.(*net.TCPConn)
+			go connHandler(w, c)
 		}
 	}()
 
 	return nil
 }
 
-func connHandler(w *world, conn net.Conn) {
-	log.Printf("handler for connection %v", conn)
+func connHandler(w *world, conn *net.TCPConn) {
+	log.Printf("handler for connection %v", conn.RemoteAddr())
 
 	defer conn.Close()
 

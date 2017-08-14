@@ -132,7 +132,13 @@ func request() (string, error) {
 	}
 	listenHost := listenAddr.IP.String()
 	if listenHost != "<nil>" {
-		srcHost = listenHost
+		if listenAddr.IP.To4() == nil {
+			// IPv6
+			srcHost = "[" + listenHost + "]"
+		} else {
+			// IPv4
+			srcHost = listenHost
+		}
 	}
 
 	endpoint := srcHost + ":" + strconv.Itoa(listenAddr.Port)
