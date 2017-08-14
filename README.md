@@ -34,13 +34,24 @@ There are many other ways, this is a quick recipe:
 
 2\. Install Android NDK
 
-    Install with Android Studio:
-    https://developer.android.com/studio/install.html   
+Download Android Studio - https://developer.android.com/studio
+
+Unzip Android Studio:
+
+    $ unzip ~/Downloads/android-studio-ide-162.4069837-linux.zip
+
+Run Android Studio:
+
+    $ ~/android-studio/bin/studio.sh &
+
+Select: Configure -> SDK Manager -> SDK Tools -> NDK
+
+Click the Apply button.
 
 Then point the env var NDK to your ndk-bundle. For example:
 
-    echo 'export NDK=$HOME/Android/Sdk/ndk-bundle' >> ~/.profile
-    . ~/.profile
+    $ echo 'export NDK=$HOME/Android/Sdk/ndk-bundle' >> ~/.profile
+    $ . ~/.profile
 
 3\. Install gomobile
 
