@@ -29,20 +29,28 @@ import (
 )
 
 type gameState struct {
-	width                  int
-	height                 int
-	gl                     gl.Context
-	program                gl.Program
-	bufSquare              gl.Buffer
-	bufSquareWire          gl.Buffer
-	bufCannon              gl.Buffer
-	bufCannonDown          gl.Buffer
-	position               gl.Attrib
-	P                      gl.Uniform // projection mat4 uniform
-	color                  gl.Uniform
+	width         int
+	height        int
+	gl            gl.Context
+	program       gl.Program
+	programTex    gl.Program
+	bufSquare     gl.Buffer
+	bufSquareWire gl.Buffer
+	bufCannon     gl.Buffer
+	bufCannonDown gl.Buffer
+
+	position gl.Attrib
+	P        gl.Uniform // projection mat4 uniform
+	color    gl.Uniform
+
+	texPosition     gl.Attrib
+	texTextureCoord gl.Attrib
+
 	minX, maxX, minY, maxY float64
 	shaderVert             string
 	shaderFrag             string
+	shaderTexVert          string
+	shaderTexFrag          string
 	serverAddr             string
 	serverOutput           chan msg.Button
 	playerFuel             float32
@@ -75,6 +83,20 @@ func newGame() (*gameState, error) {
 		return nil, errFrag
 	}
 	game.shaderFrag = string(frag)
+
+	texVert, errVert := loadFull("shader_tex.vert")
+	if errVert != nil {
+		log.Printf("load vertex shader: %v", errVert)
+		return nil, errVert
+	}
+	game.shaderTexVert = string(texVert)
+
+	texFrag, errFrag := loadFull("shader_tex.frag")
+	if errFrag != nil {
+		log.Printf("load fragment shader: %v", errFrag)
+		return nil, errFrag
+	}
+	game.shaderTexFrag = string(texFrag)
 
 	server, errServ := loadFull("server.txt")
 	if errServ != nil {
@@ -303,8 +325,15 @@ func (game *gameState) start(glc gl.Context) {
 		log.Printf("start: error creating GL program: %v", err)
 		return
 	}
-
 	log.Printf("start: shader compiled")
+
+	var errTex error
+	game.programTex, errTex = glutil.CreateProgram(glc, game.shaderTexVert, game.shaderTexFrag)
+	if errTex != nil {
+		log.Printf("start: error creating GL texturizer program: %v", errTex)
+		return
+	}
+	log.Printf("start: texturizing shader compiled")
 
 	game.bufSquare = glc.CreateBuffer()
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
@@ -322,15 +351,34 @@ func (game *gameState) start(glc gl.Context) {
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufCannonDown)
 	glc.BufferData(gl.ARRAY_BUFFER, cannonDownData, gl.STATIC_DRAW)
 
-	game.position = glc.GetAttribLocation(game.program, "position")
-	game.P = glc.GetUniformLocation(game.program, "P")
-	game.color = glc.GetUniformLocation(game.program, "color")
+	game.position = getAttribLocation(glc, game.program, "position")
+	game.P = getUniformLocation(glc, game.program, "P")
+	game.color = getUniformLocation(glc, game.program, "color")
+
+	game.texPosition = getAttribLocation(glc, game.programTex, "position")
+	game.texTextureCoord = getAttribLocation(glc, game.programTex, "textureCoord")
 
 	glc.ClearColor(.5, .5, .5, 1) // gray background
 
 	game.gl = glc
 
 	log.Printf("start: shader initialized")
+}
+
+func getUniformLocation(glc gl.Context, prog gl.Program, uniform string) gl.Uniform {
+	location := glc.GetUniformLocation(prog, uniform)
+	if location.Value < 0 {
+		log.Printf("bad uniform '%s' location: %d", uniform, location.Value)
+	}
+	return location
+}
+
+func getAttribLocation(glc gl.Context, prog gl.Program, attr string) gl.Attrib {
+	location := glc.GetAttribLocation(prog, attr)
+	if location.Value < 0 {
+		log.Printf("bad attribute '%s' location: %d", attr, location.Value)
+	}
+	return location
 }
 
 func (game *gameState) stop() {
