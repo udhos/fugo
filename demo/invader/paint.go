@@ -151,4 +151,19 @@ func (game *gameState) paint() {
 	}
 
 	glc.DisableVertexAttribArray(game.position)
+
+	game.paintTex(glc) // another shader
+}
+
+func (game *gameState) paintTex(glc gl.Context) {
+
+	glc.UseProgram(game.programTex)
+	glc.EnableVertexAttribArray(game.texPosition)
+	glc.EnableVertexAttribArray(game.texTextureCoord)
+
+	MVP := goglmath.NewMatrix4Identity()
+	glc.UniformMatrix4fv(game.texMVP, MVP.Data())
+
+	glc.DisableVertexAttribArray(game.texPosition)
+	glc.DisableVertexAttribArray(game.texTextureCoord)
 }

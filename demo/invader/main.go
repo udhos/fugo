@@ -39,12 +39,16 @@ type gameState struct {
 	bufCannon     gl.Buffer
 	bufCannonDown gl.Buffer
 
+	// simple shader
 	position gl.Attrib
 	P        gl.Uniform // projection mat4 uniform
 	color    gl.Uniform
 
+	// texturizing shader
 	texPosition     gl.Attrib
 	texTextureCoord gl.Attrib
+	texSampler      gl.Uniform
+	texMVP          gl.Uniform // MVP mat4
 
 	minX, maxX, minY, maxY float64
 	shaderVert             string
@@ -357,12 +361,14 @@ func (game *gameState) start(glc gl.Context) {
 
 	game.texPosition = getAttribLocation(glc, game.programTex, "position")
 	game.texTextureCoord = getAttribLocation(glc, game.programTex, "textureCoord")
+	game.texMVP = getUniformLocation(glc, game.programTex, "MVP")
+	game.texSampler = getUniformLocation(glc, game.programTex, "sampler")
 
 	glc.ClearColor(.5, .5, .5, 1) // gray background
 
 	game.gl = glc
 
-	log.Printf("start: shader initialized")
+	log.Printf("start: shaders initialized")
 }
 
 func getUniformLocation(glc gl.Context, prog gl.Program, uniform string) gl.Uniform {
@@ -375,7 +381,8 @@ func getUniformLocation(glc gl.Context, prog gl.Program, uniform string) gl.Unif
 
 func getAttribLocation(glc gl.Context, prog gl.Program, attr string) gl.Attrib {
 	location := glc.GetAttribLocation(prog, attr)
-	if location.Value < 0 {
+	// FIXME 1000 is a hack to detect a bad location.Value, since it can't represent -1
+	if location.Value > 1000 {
 		log.Printf("bad attribute '%s' location: %d", attr, location.Value)
 	}
 	return location
@@ -387,6 +394,8 @@ func (game *gameState) stop() {
 	glc := game.gl // shortcut
 
 	glc.DeleteProgram(game.program)
+	glc.DeleteProgram(game.programTex)
+
 	glc.DeleteBuffer(game.bufSquare)
 	glc.DeleteBuffer(game.bufSquareWire)
 	glc.DeleteBuffer(game.bufCannon)
