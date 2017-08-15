@@ -5,6 +5,8 @@ package main
 import (
 	"encoding/binary"
 	"encoding/gob"
+	"image"
+	_ "image/png" // The _ means to import a package purely for its initialization side effects.
 	"io/ioutil"
 	"log"
 	"os"
@@ -49,6 +51,8 @@ type gameState struct {
 	texTextureCoord gl.Attrib
 	texSampler      gl.Uniform
 	texMVP          gl.Uniform // MVP mat4
+	texTexture      gl.Texture
+	texImage        *image.NRGBA
 
 	minX, maxX, minY, maxY float64
 	shaderVert             string
@@ -101,6 +105,25 @@ func newGame() (*gameState, error) {
 		return nil, errFrag
 	}
 	game.shaderTexFrag = string(texFrag)
+
+	imgFile := "ccf.png"
+	imgIn, errImg := asset.Open(imgFile)
+	if errImg != nil {
+		log.Printf("open texture image: %s: %v", imgFile, errImg)
+	}
+	img, _, errDec := image.Decode(imgIn)
+	if errDec != nil {
+		log.Printf("decode texture image: %s: %v", imgFile, errDec)
+	}
+	if img != nil {
+		switch i := img.(type) {
+		case *image.NRGBA:
+			log.Printf("nrgba image type: %s", imgFile)
+			game.texImage = i
+		default:
+			log.Printf("unexpected image type: %s: %v", imgFile, i.ColorModel())
+		}
+	}
 
 	server, errServ := loadFull("server.txt")
 	if errServ != nil {
@@ -364,6 +387,14 @@ func (game *gameState) start(glc gl.Context) {
 	game.texMVP = getUniformLocation(glc, game.programTex, "MVP")
 	game.texSampler = getUniformLocation(glc, game.programTex, "sampler")
 
+	game.texTexture = glc.CreateTexture()
+	glc.BindTexture(gl.TEXTURE_2D, game.texTexture)
+	bounds := game.texImage.Bounds()
+	w := bounds.Max.X - bounds.Min.X
+	h := bounds.Max.Y - bounds.Min.Y
+	log.Printf("start: texture image: %dx%d", w, h)
+	glc.TexImage2D(gl.TEXTURE_2D, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, game.texImage.Pix)
+
 	glc.ClearColor(.5, .5, .5, 1) // gray background
 
 	game.gl = glc
@@ -395,6 +426,7 @@ func (game *gameState) stop() {
 
 	glc.DeleteProgram(game.program)
 	glc.DeleteProgram(game.programTex)
+	glc.DeleteTexture(game.texTexture)
 
 	glc.DeleteBuffer(game.bufSquare)
 	glc.DeleteBuffer(game.bufSquareWire)
