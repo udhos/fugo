@@ -57,6 +57,7 @@ type gameState struct {
 	texTexture      gl.Texture
 	texImage        *image.NRGBA
 	texButtonFire   gl.Texture
+	texButtonTurn   gl.Texture
 
 	minX, maxX, minY, maxY float64
 	shaderVert             string
@@ -428,6 +429,10 @@ func (game *gameState) start(glc gl.Context) {
 	if errLoad != nil {
 		log.Printf("start: texture load: %v", errLoad)
 	}
+	game.texButtonTurn, errLoad = loadTexture(glc, "icon-right-left.png", true)
+	if errLoad != nil {
+		log.Printf("start: texture load: %v", errLoad)
+	}
 
 	game.bufSquareElemData = glc.CreateBuffer()
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
@@ -470,6 +475,7 @@ func (game *gameState) stop() {
 	glc.DeleteProgram(game.programTex)
 	glc.DeleteTexture(game.texTexture)
 	glc.DeleteTexture(game.texButtonFire)
+	glc.DeleteTexture(game.texButtonTurn)
 	glc.DeleteBuffer(game.bufSquareElemIndex)
 	glc.DeleteBuffer(game.bufSquareElemData)
 

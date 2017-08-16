@@ -200,19 +200,19 @@ func (game *gameState) paintTex(glc gl.Context, buttonWidth, buttonHeight float6
 		log.Printf("paintTex: bad framebuffer status: %d", status)
 	}
 
-	// draw button
+	// draw button - fire
 
 	fireIndex := 0
 	var MVPfire goglmath.Matrix4
 	game.setOrtho(&MVPfire)
 	scaleButtonFire := buttonHeight // FIXME using square -- should use image aspect?
-	x := game.minX + float64(fireIndex)*buttonWidth
-	MVPfire.Translate(x, game.minY, 0, 1)
+	xFire := game.minX + float64(fireIndex)*buttonWidth
+	MVPfire.Translate(xFire, game.minY, 0, 1)
 	MVPfire.Scale(scaleButtonFire, scaleButtonFire, 1, 1)
 	glc.UniformMatrix4fv(game.texMVP, MVPfire.Data())
 
-	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
-	glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, game.bufSquareElemIndex)
+	//glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
+	//glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, game.bufSquareElemIndex)
 
 	//strideSize := 5 * 4 // 5 x 4 bytes
 	//itemsPosition := 3
@@ -223,6 +223,36 @@ func (game *gameState) paintTex(glc gl.Context, buttonWidth, buttonHeight float6
 	//glc.VertexAttribPointer(game.texTextureCoord, itemsTexture, gl.FLOAT, false, strideSize, offsetTexture)
 
 	glc.BindTexture(gl.TEXTURE_2D, game.texButtonFire)
+
+	//elemFirst := 0
+	//elemCount := squareElemIndexCount // 6
+	//elemType := gl.Enum(gl.UNSIGNED_INT)
+	//elemSize := 4
+	glc.DrawElements(gl.TRIANGLES, elemCount, elemType, elemFirst*elemSize)
+
+	// draw button - turn
+
+	turnIndex := 1
+	var MVPturn goglmath.Matrix4
+	game.setOrtho(&MVPturn)
+	scaleButtonTurn := buttonHeight // FIXME using square -- should use image aspect?
+	xTurn := game.minX + float64(turnIndex)*buttonWidth
+	MVPturn.Translate(xTurn, game.minY, 0, 1)
+	MVPturn.Scale(scaleButtonTurn, scaleButtonTurn, 1, 1)
+	glc.UniformMatrix4fv(game.texMVP, MVPturn.Data())
+
+	//glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
+	//glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, game.bufSquareElemIndex)
+
+	//strideSize := 5 * 4 // 5 x 4 bytes
+	//itemsPosition := 3
+	//itemsTexture := 2
+	//offsetPosition := 0
+	//offsetTexture := itemsPosition * 4 // 3 x 4 bytes
+	//glc.VertexAttribPointer(game.texPosition, itemsPosition, gl.FLOAT, false, strideSize, offsetPosition)
+	//glc.VertexAttribPointer(game.texTextureCoord, itemsTexture, gl.FLOAT, false, strideSize, offsetTexture)
+
+	glc.BindTexture(gl.TEXTURE_2D, game.texButtonTurn)
 
 	//elemFirst := 0
 	//elemCount := squareElemIndexCount // 6
