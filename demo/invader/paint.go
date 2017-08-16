@@ -158,6 +158,9 @@ func (game *gameState) paint() {
 
 func (game *gameState) paintTex(glc gl.Context) {
 
+	glc.Enable(gl.BLEND)
+	glc.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
 	glc.UseProgram(game.programTex)
 	glc.EnableVertexAttribArray(game.texPosition)
 	glc.EnableVertexAttribArray(game.texTextureCoord)
@@ -197,4 +200,6 @@ func (game *gameState) paintTex(glc gl.Context) {
 
 	glc.DisableVertexAttribArray(game.texPosition)
 	glc.DisableVertexAttribArray(game.texTextureCoord)
+
+	glc.Disable(gl.BLEND)
 }
