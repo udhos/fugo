@@ -109,7 +109,7 @@ func newGame() (*gameState, error) {
 	}
 	game.shaderTexFrag = string(texFrag)
 
-	imgFile := "ccf.png"
+	imgFile := "awesomeface.png"
 	imgIn, errImg := asset.Open(imgFile)
 	if errImg != nil {
 		log.Printf("open texture image: %s: %v", imgFile, errImg)
@@ -122,7 +122,8 @@ func newGame() (*gameState, error) {
 		log.Printf("texture image loaded: %s", imgFile)
 		switch i := img.(type) {
 		case *image.NRGBA:
-			log.Printf("nrgba image type: %s", imgFile)
+			b := i.Bounds()
+			log.Printf("nrgba image type: %s %dx%d", imgFile, b.Max.X, b.Max.Y)
 			game.texImage = i
 			flipY(imgFile, game.texImage)
 		default:
@@ -174,7 +175,7 @@ func flipY(name string, img *image.NRGBA) {
 			img.Set(x, y2, c1)
 		}
 	}
-	log.Printf("image %s Y-flipped", string)
+	log.Printf("image y-flipped: %s", name)
 }
 
 func main() {
