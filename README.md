@@ -11,6 +11,7 @@ fugo - fun with Go. gomobile OpenGL game
   * [Building the INVADER application](#building-the-invader-application)
   * [Building the ARENA server](#building-the-arena-server)
   * [How does the INVADER application locate the ARENA server?](#how-does-the-invader-application-locate-the-arena-server)
+* [KNOWN ISSUES](#known-issues)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
 
@@ -129,6 +130,14 @@ b) The Invader application will try to connect to the Arena server specified in 
     localhost:8080
 
 The TCP endpoint hard-coded in the file server.txt is included in the APK file. You will need to rebuild and redeploy the application to change it. This option is useful for deploying public Arena server on the Internet.
+
+## KNOWN ISSUES
+
+- Need way to hide Android status bar. https://github.com/golang/go/issues/21396
+
+- Need way to set Android app icon. https://github.com/golang/go/issues/9985
+
+- Need way to call Android API from Go.
 
 --xx--
 
