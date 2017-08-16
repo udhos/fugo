@@ -56,6 +56,7 @@ type gameState struct {
 	texMVP          gl.Uniform // MVP mat4
 	texTexture      gl.Texture
 	texImage        *image.NRGBA
+	texButtonFire   gl.Texture
 
 	minX, maxX, minY, maxY float64
 	shaderVert             string
@@ -422,6 +423,12 @@ func (game *gameState) start(glc gl.Context) {
 	glc.TexImage2D(gl.TEXTURE_2D, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, game.texImage.Pix)
 	log.Printf("start: texture image uploaded: %dx%d", w, h)
 
+	var errLoad error
+	game.texButtonFire, errLoad = loadTexture(glc, "icon-missile.png", true)
+	if errLoad != nil {
+		log.Printf("start: texture load: %v", errLoad)
+	}
+
 	game.bufSquareElemData = glc.CreateBuffer()
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
 	glc.BufferData(gl.ARRAY_BUFFER, squareElemData, gl.STATIC_DRAW)
@@ -462,6 +469,7 @@ func (game *gameState) stop() {
 	glc.DeleteProgram(game.program)
 	glc.DeleteProgram(game.programTex)
 	glc.DeleteTexture(game.texTexture)
+	glc.DeleteTexture(game.texButtonFire)
 	glc.DeleteBuffer(game.bufSquareElemIndex)
 	glc.DeleteBuffer(game.bufSquareElemData)
 

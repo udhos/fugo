@@ -145,6 +145,7 @@ https://github.com/golang/go/issues/9985
 - Need way to call Android API from Go.
 
 slides 65-67 from https://pt.slideshare.net/takuyaueda967/go-for-mobile-games
+
 RunOnJVM https://gist.github.com/tenntenn/aae3d14d0df4884ac4e7
 
 --xx--

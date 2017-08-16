@@ -153,10 +153,10 @@ func (game *gameState) paint() {
 
 	glc.DisableVertexAttribArray(game.position)
 
-	game.paintTex(glc) // another shader
+	game.paintTex(glc, buttonWidth, buttonHeight) // another shader
 }
 
-func (game *gameState) paintTex(glc gl.Context) {
+func (game *gameState) paintTex(glc gl.Context, buttonWidth, buttonHeight float64) {
 
 	glc.Enable(gl.BLEND)
 	glc.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
@@ -165,7 +165,12 @@ func (game *gameState) paintTex(glc gl.Context) {
 	glc.EnableVertexAttribArray(game.texPosition)
 	glc.EnableVertexAttribArray(game.texTextureCoord)
 
-	//MVP := goglmath.NewMatrix4Identity()
+	unit := 0
+	glc.ActiveTexture(gl.TEXTURE0 + gl.Enum(unit))
+	glc.Uniform1i(game.texSampler, unit)
+
+	// draw face
+
 	var MVP goglmath.Matrix4
 	game.setOrtho(&MVP)
 	scale := .5
@@ -183,10 +188,7 @@ func (game *gameState) paintTex(glc gl.Context) {
 	glc.VertexAttribPointer(game.texPosition, itemsPosition, gl.FLOAT, false, strideSize, offsetPosition)
 	glc.VertexAttribPointer(game.texTextureCoord, itemsTexture, gl.FLOAT, false, strideSize, offsetTexture)
 
-	unit := 0
-	glc.ActiveTexture(gl.TEXTURE0 + gl.Enum(unit))
 	glc.BindTexture(gl.TEXTURE_2D, game.texTexture)
-	glc.Uniform1i(game.texSampler, unit)
 
 	elemFirst := 0
 	elemCount := squareElemIndexCount // 6
@@ -197,6 +199,38 @@ func (game *gameState) paintTex(glc gl.Context) {
 	if status := glc.CheckFramebufferStatus(gl.FRAMEBUFFER); status != gl.FRAMEBUFFER_COMPLETE {
 		log.Printf("paintTex: bad framebuffer status: %d", status)
 	}
+
+	// draw button
+
+	fireIndex := 0
+	var MVPfire goglmath.Matrix4
+	game.setOrtho(&MVPfire)
+	scaleButtonFire := buttonHeight // FIXME using square -- should use image aspect?
+	x := game.minX + float64(fireIndex)*buttonWidth
+	MVPfire.Translate(x, game.minY, 0, 1)
+	MVPfire.Scale(scaleButtonFire, scaleButtonFire, 1, 1)
+	glc.UniformMatrix4fv(game.texMVP, MVPfire.Data())
+
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
+	glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, game.bufSquareElemIndex)
+
+	//strideSize := 5 * 4 // 5 x 4 bytes
+	//itemsPosition := 3
+	//itemsTexture := 2
+	//offsetPosition := 0
+	//offsetTexture := itemsPosition * 4 // 3 x 4 bytes
+	//glc.VertexAttribPointer(game.texPosition, itemsPosition, gl.FLOAT, false, strideSize, offsetPosition)
+	//glc.VertexAttribPointer(game.texTextureCoord, itemsTexture, gl.FLOAT, false, strideSize, offsetTexture)
+
+	glc.BindTexture(gl.TEXTURE_2D, game.texButtonFire)
+
+	//elemFirst := 0
+	//elemCount := squareElemIndexCount // 6
+	//elemType := gl.Enum(gl.UNSIGNED_INT)
+	//elemSize := 4
+	glc.DrawElements(gl.TRIANGLES, elemCount, elemType, elemFirst*elemSize)
+
+	// clean-up
 
 	glc.DisableVertexAttribArray(game.texPosition)
 	glc.DisableVertexAttribArray(game.texTextureCoord)
