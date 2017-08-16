@@ -78,7 +78,7 @@ Recipe:
 
 Recipe:
 
-    go install github.com/udhos/fugo/demo/invader
+    go install -tags gldebug github.com/udhos/fugo/demo/invader
 
 Hint: You can test the desktop version by running 'invader':
 

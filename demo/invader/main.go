@@ -3,6 +3,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/binary"
 	"encoding/gob"
 	"image"
@@ -31,15 +32,17 @@ import (
 )
 
 type gameState struct {
-	width         int
-	height        int
-	gl            gl.Context
-	program       gl.Program
-	programTex    gl.Program
-	bufSquare     gl.Buffer
-	bufSquareWire gl.Buffer
-	bufCannon     gl.Buffer
-	bufCannonDown gl.Buffer
+	width              int
+	height             int
+	gl                 gl.Context
+	program            gl.Program
+	programTex         gl.Program
+	bufSquare          gl.Buffer
+	bufSquareWire      gl.Buffer
+	bufCannon          gl.Buffer
+	bufCannonDown      gl.Buffer
+	bufSquareElemIndex gl.Buffer
+	bufSquareElemData  gl.Buffer
 
 	// simple shader
 	position gl.Attrib
@@ -116,6 +119,7 @@ func newGame() (*gameState, error) {
 		log.Printf("decode texture image: %s: %v", imgFile, errDec)
 	}
 	if img != nil {
+		log.Printf("texture image loaded: %s", imgFile)
 		switch i := img.(type) {
 		case *image.NRGBA:
 			log.Printf("nrgba image type: %s", imgFile)
@@ -389,11 +393,25 @@ func (game *gameState) start(glc gl.Context) {
 
 	game.texTexture = glc.CreateTexture()
 	glc.BindTexture(gl.TEXTURE_2D, game.texTexture)
+	glc.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+	glc.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+	// for NPOT texture, only clamp to edge is supported
+	glc.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+	glc.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 	bounds := game.texImage.Bounds()
 	w := bounds.Max.X - bounds.Min.X
 	h := bounds.Max.Y - bounds.Min.Y
-	log.Printf("start: texture image: %dx%d", w, h)
-	glc.TexImage2D(gl.TEXTURE_2D, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, game.texImage.Pix)
+	// TexImage2D(target Enum, level int, width, height int, format Enum, ty Enum, data []byte)
+	glc.TexImage2D(gl.TEXTURE_2D, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, game.texImage.Pix)
+	log.Printf("start: texture image uploaded: %dx%d", w, h)
+
+	game.bufSquareElemData = glc.CreateBuffer()
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
+	glc.BufferData(gl.ARRAY_BUFFER, squareElemData, gl.STATIC_DRAW)
+
+	game.bufSquareElemIndex = glc.CreateBuffer()
+	glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, game.bufSquareElemIndex)
+	glc.BufferData(gl.ELEMENT_ARRAY_BUFFER, squareElemIndex, gl.STATIC_DRAW)
 
 	glc.ClearColor(.5, .5, .5, 1) // gray background
 
@@ -427,6 +445,8 @@ func (game *gameState) stop() {
 	glc.DeleteProgram(game.program)
 	glc.DeleteProgram(game.programTex)
 	glc.DeleteTexture(game.texTexture)
+	glc.DeleteBuffer(game.bufSquareElemIndex)
+	glc.DeleteBuffer(game.bufSquareElemData)
 
 	glc.DeleteBuffer(game.bufSquare)
 	glc.DeleteBuffer(game.bufSquareWire)
@@ -482,4 +502,28 @@ var squareWireData = f32.Bytes(binary.LittleEndian,
 	0.0, 0.0, 0.0,
 	1.0, 0.0, 0.0,
 	1.0, 1.0, 0.0,
+)
+
+const squareElemIndexCount = 6
+
+var squareElemIndex = intToBytes([]uint32{
+	0, 1, 2,
+	2, 3, 0,
+})
+
+func intToBytes(s []uint32) []byte {
+	buf := new(bytes.Buffer)
+	binary.Write(buf, binary.LittleEndian, s)
+	b := buf.Bytes()
+	log.Printf("intToBytes: ints=%d bytes=%d", len(s), len(b))
+	return b
+}
+
+var squareElemData = f32.Bytes(binary.LittleEndian,
+	// pos         tex
+	// ----------  --------
+	0.0, 1.0, 0.0, 0.0, 1.0, // 0
+	0.0, 0.0, 0.0, 0.0, 0.0, // 1
+	1.0, 0.0, 0.0, 1.0, 0.0, // 2
+	1.0, 1.0, 0.0, 1.0, 1.0, // 3
 )

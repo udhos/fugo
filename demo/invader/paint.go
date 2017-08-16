@@ -3,6 +3,7 @@
 package main
 
 import (
+	"log"
 	"time"
 
 	"github.com/udhos/goglmath"
@@ -161,8 +162,38 @@ func (game *gameState) paintTex(glc gl.Context) {
 	glc.EnableVertexAttribArray(game.texPosition)
 	glc.EnableVertexAttribArray(game.texTextureCoord)
 
-	MVP := goglmath.NewMatrix4Identity()
+	//MVP := goglmath.NewMatrix4Identity()
+	var MVP goglmath.Matrix4
+	game.setOrtho(&MVP)
+	scale := .5
+	MVP.Scale(scale, scale, 1, 1)
 	glc.UniformMatrix4fv(game.texMVP, MVP.Data())
+
+	strideSize := 5 * 4 // 5 x 4 bytes
+	itemsPosition := 3
+	itemsTexture := 2
+	offsetPosition := 0
+	offsetTexture := itemsPosition * 4 // 3 x 4 bytes
+	glc.VertexAttribPointer(game.texPosition, itemsPosition, gl.FLOAT, false, strideSize, offsetPosition)
+	glc.VertexAttribPointer(game.texTextureCoord, itemsTexture, gl.FLOAT, false, strideSize, offsetTexture)
+
+	unit := 0
+	glc.ActiveTexture(gl.TEXTURE0 + gl.Enum(unit))
+	glc.BindTexture(gl.TEXTURE_2D, game.texTexture)
+	glc.Uniform1i(game.texSampler, unit)
+
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
+	glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, game.bufSquareElemIndex)
+
+	elemFirst := 0
+	elemCount := squareElemIndexCount // 6
+	elemType := gl.Enum(gl.UNSIGNED_INT)
+	elemSize := 4
+	glc.DrawElements(gl.TRIANGLES, elemCount, elemType, elemFirst*elemSize)
+
+	if status := glc.CheckFramebufferStatus(gl.FRAMEBUFFER); status != gl.FRAMEBUFFER_COMPLETE {
+		log.Printf("paintTex: bad framebuffer status: %d", status)
+	}
 
 	glc.DisableVertexAttribArray(game.texPosition)
 	glc.DisableVertexAttribArray(game.texTextureCoord)
