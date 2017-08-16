@@ -124,6 +124,7 @@ func newGame() (*gameState, error) {
 		case *image.NRGBA:
 			log.Printf("nrgba image type: %s", imgFile)
 			game.texImage = i
+			flipY(imgFile, game.texImage)
 		default:
 			log.Printf("unexpected image type: %s: %v", imgFile, i.ColorModel())
 		}
@@ -159,6 +160,21 @@ func newGame() (*gameState, error) {
 	game.serverOutput = make(chan msg.Button)
 
 	return game, nil
+}
+
+func flipY(name string, img *image.NRGBA) {
+	b := img.Bounds()
+	midY := (b.Max.Y - b.Min.Y) / 2
+	for x := b.Min.X; x < b.Max.X; x++ {
+		for y1 := b.Min.Y; y1 < midY; y1++ {
+			y2 := b.Max.Y - y1 - 1
+			c1 := img.At(x, y1)
+			c2 := img.At(x, y2)
+			img.Set(x, y1, c2)
+			img.Set(x, y2, c1)
+		}
+	}
+	log.Printf("image %s Y-flipped", string)
 }
 
 func main() {
