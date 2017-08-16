@@ -136,6 +136,7 @@ The TCP endpoint hard-coded in the file server.txt is included in the APK file. 
 - Need way to hide Android status bar.
 
 https://github.com/golang/go/issues/12766
+
 https://github.com/golang/go/issues/21396
 
 - Need way to set Android app icon.
