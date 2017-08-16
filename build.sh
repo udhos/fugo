@@ -80,6 +80,8 @@ check future
 check msg
 check trace
 if [ "$1" != arena ]; then
+	mobilebuild demo/square
+	mobilebuild demo/triangle2
 	mobilebuild demo/triangle
 	mobilebuild demo/invader
 fi

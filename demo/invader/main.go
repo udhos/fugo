@@ -506,16 +506,16 @@ var squareWireData = f32.Bytes(binary.LittleEndian,
 
 const squareElemIndexCount = 6
 
-var squareElemIndex = intToBytes([]uint32{
+var squareElemIndex = intsToBytes([]uint32{
 	0, 1, 2,
 	2, 3, 0,
 })
 
-func intToBytes(s []uint32) []byte {
+func intsToBytes(s []uint32) []byte {
 	buf := new(bytes.Buffer)
 	binary.Write(buf, binary.LittleEndian, s)
 	b := buf.Bytes()
-	log.Printf("intToBytes: ints=%d bytes=%d", len(s), len(b))
+	//log.Printf("intsToBytes: ints=%d bytes=%d: %v", len(s), len(b), b)
 	return b
 }
 

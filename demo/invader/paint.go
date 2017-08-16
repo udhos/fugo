@@ -169,6 +169,9 @@ func (game *gameState) paintTex(glc gl.Context) {
 	MVP.Scale(scale, scale, 1, 1)
 	glc.UniformMatrix4fv(game.texMVP, MVP.Data())
 
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
+	glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, game.bufSquareElemIndex)
+
 	strideSize := 5 * 4 // 5 x 4 bytes
 	itemsPosition := 3
 	itemsTexture := 2
@@ -181,9 +184,6 @@ func (game *gameState) paintTex(glc gl.Context) {
 	glc.ActiveTexture(gl.TEXTURE0 + gl.Enum(unit))
 	glc.BindTexture(gl.TEXTURE_2D, game.texTexture)
 	glc.Uniform1i(game.texSampler, unit)
-
-	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
-	glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, game.bufSquareElemIndex)
 
 	elemFirst := 0
 	elemCount := squareElemIndexCount // 6
