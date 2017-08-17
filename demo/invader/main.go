@@ -54,10 +54,10 @@ type gameState struct {
 	texTextureCoord gl.Attrib
 	texSampler      gl.Uniform
 	texMVP          gl.Uniform // MVP mat4
-	texTexture      gl.Texture
-	texImage        *image.NRGBA
-	texButtonFire   gl.Texture
-	texButtonTurn   gl.Texture
+	//texTexture      gl.Texture
+	//texImage        *image.NRGBA
+	texButtonFire gl.Texture
+	texButtonTurn gl.Texture
 
 	minX, maxX, minY, maxY float64
 	shaderVert             string
@@ -111,27 +111,29 @@ func newGame() (*gameState, error) {
 	}
 	game.shaderTexFrag = string(texFrag)
 
-	imgFile := "awesomeface.png"
-	imgIn, errImg := asset.Open(imgFile)
-	if errImg != nil {
-		log.Printf("open texture image: %s: %v", imgFile, errImg)
-	}
-	img, _, errDec := image.Decode(imgIn)
-	if errDec != nil {
-		log.Printf("decode texture image: %s: %v", imgFile, errDec)
-	}
-	if img != nil {
-		log.Printf("texture image loaded: %s", imgFile)
-		switch i := img.(type) {
-		case *image.NRGBA:
-			b := i.Bounds()
-			log.Printf("nrgba image type: %s %dx%d", imgFile, b.Max.X, b.Max.Y)
-			game.texImage = i
-			flipY(imgFile, game.texImage)
-		default:
-			log.Printf("unexpected image type: %s: %v", imgFile, i.ColorModel())
+	/*
+		imgFile := "awesomeface.png"
+		imgIn, errImg := asset.Open(imgFile)
+		if errImg != nil {
+			log.Printf("open texture image: %s: %v", imgFile, errImg)
 		}
-	}
+		img, _, errDec := image.Decode(imgIn)
+		if errDec != nil {
+			log.Printf("decode texture image: %s: %v", imgFile, errDec)
+		}
+		if img != nil {
+			log.Printf("texture image loaded: %s", imgFile)
+			switch i := img.(type) {
+			case *image.NRGBA:
+				b := i.Bounds()
+				log.Printf("nrgba image type: %s %dx%d", imgFile, b.Max.X, b.Max.Y)
+				game.texImage = i
+				flipY(imgFile, game.texImage)
+			default:
+				log.Printf("unexpected image type: %s: %v", imgFile, i.ColorModel())
+			}
+		}
+	*/
 
 	server, errServ := loadFull("server.txt")
 	if errServ != nil {
@@ -410,19 +412,21 @@ func (game *gameState) start(glc gl.Context) {
 	game.texMVP = getUniformLocation(glc, game.programTex, "MVP")
 	game.texSampler = getUniformLocation(glc, game.programTex, "sampler")
 
-	game.texTexture = glc.CreateTexture()
-	glc.BindTexture(gl.TEXTURE_2D, game.texTexture)
-	glc.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-	glc.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-	// for NPOT texture, only clamp to edge is supported
-	glc.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-	glc.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-	bounds := game.texImage.Bounds()
-	w := bounds.Max.X - bounds.Min.X
-	h := bounds.Max.Y - bounds.Min.Y
-	// TexImage2D(target Enum, level int, width, height int, format Enum, ty Enum, data []byte)
-	glc.TexImage2D(gl.TEXTURE_2D, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, game.texImage.Pix)
-	log.Printf("start: texture image uploaded: %dx%d", w, h)
+	/*
+		game.texTexture = glc.CreateTexture()
+		glc.BindTexture(gl.TEXTURE_2D, game.texTexture)
+		glc.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+		glc.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+		// for NPOT texture, only clamp to edge is supported
+		glc.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+		glc.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+		bounds := game.texImage.Bounds()
+		w := bounds.Max.X - bounds.Min.X
+		h := bounds.Max.Y - bounds.Min.Y
+		// TexImage2D(target Enum, level int, width, height int, format Enum, ty Enum, data []byte)
+		glc.TexImage2D(gl.TEXTURE_2D, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, game.texImage.Pix)
+		log.Printf("start: texture image uploaded: %dx%d", w, h)
+	*/
 
 	var errLoad error
 	game.texButtonFire, errLoad = loadTexture(glc, "icon-missile.png", true)
@@ -473,7 +477,7 @@ func (game *gameState) stop() {
 
 	glc.DeleteProgram(game.program)
 	glc.DeleteProgram(game.programTex)
-	glc.DeleteTexture(game.texTexture)
+	//glc.DeleteTexture(game.texTexture)
 	glc.DeleteTexture(game.texButtonFire)
 	glc.DeleteTexture(game.texButtonTurn)
 	glc.DeleteBuffer(game.bufSquareElemIndex)

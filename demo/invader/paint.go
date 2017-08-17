@@ -3,7 +3,7 @@
 package main
 
 import (
-	"log"
+	//"log"
 	"time"
 
 	"github.com/udhos/goglmath"
@@ -171,14 +171,47 @@ func (game *gameState) paintTex(glc gl.Context, buttonWidth, buttonHeight float6
 
 	// draw face
 
-	var MVP goglmath.Matrix4
-	game.setOrtho(&MVP)
-	scale := .5
-	MVP.Scale(scale, scale, 1, 1)
-	glc.UniformMatrix4fv(game.texMVP, MVP.Data())
+	/*
+		var MVP goglmath.Matrix4
+		game.setOrtho(&MVP)
+		scale := .5
+		MVP.Scale(scale, scale, 1, 1)
+		glc.UniformMatrix4fv(game.texMVP, MVP.Data())
+
+		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
+		glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, game.bufSquareElemIndex)
+
+		strideSize := 5 * 4 // 5 x 4 bytes
+		itemsPosition := 3
+		itemsTexture := 2
+		offsetPosition := 0
+		offsetTexture := itemsPosition * 4 // 3 x 4 bytes
+		glc.VertexAttribPointer(game.texPosition, itemsPosition, gl.FLOAT, false, strideSize, offsetPosition)
+		glc.VertexAttribPointer(game.texTextureCoord, itemsTexture, gl.FLOAT, false, strideSize, offsetTexture)
+
+		glc.BindTexture(gl.TEXTURE_2D, game.texTexture)
+
+		elemFirst := 0
+		elemCount := squareElemIndexCount // 6
+		elemType := gl.Enum(gl.UNSIGNED_INT)
+		elemSize := 4
+		glc.DrawElements(gl.TRIANGLES, elemCount, elemType, elemFirst*elemSize)
+
+		if status := glc.CheckFramebufferStatus(gl.FRAMEBUFFER); status != gl.FRAMEBUFFER_COMPLETE {
+			log.Printf("paintTex: bad framebuffer status: %d", status)
+		}
+	*/
+
+	// draw button - fire
 
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
 	glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, game.bufSquareElemIndex)
+
+	// square geometry
+	elemFirst := 0
+	elemCount := squareElemIndexCount // 6
+	elemType := gl.Enum(gl.UNSIGNED_INT)
+	elemSize := 4
 
 	strideSize := 5 * 4 // 5 x 4 bytes
 	itemsPosition := 3
@@ -187,20 +220,6 @@ func (game *gameState) paintTex(glc gl.Context, buttonWidth, buttonHeight float6
 	offsetTexture := itemsPosition * 4 // 3 x 4 bytes
 	glc.VertexAttribPointer(game.texPosition, itemsPosition, gl.FLOAT, false, strideSize, offsetPosition)
 	glc.VertexAttribPointer(game.texTextureCoord, itemsTexture, gl.FLOAT, false, strideSize, offsetTexture)
-
-	glc.BindTexture(gl.TEXTURE_2D, game.texTexture)
-
-	elemFirst := 0
-	elemCount := squareElemIndexCount // 6
-	elemType := gl.Enum(gl.UNSIGNED_INT)
-	elemSize := 4
-	glc.DrawElements(gl.TRIANGLES, elemCount, elemType, elemFirst*elemSize)
-
-	if status := glc.CheckFramebufferStatus(gl.FRAMEBUFFER); status != gl.FRAMEBUFFER_COMPLETE {
-		log.Printf("paintTex: bad framebuffer status: %d", status)
-	}
-
-	// draw button - fire
 
 	fireIndex := 0
 	var MVPfire goglmath.Matrix4
