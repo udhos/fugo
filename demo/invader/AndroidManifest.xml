@@ -6,7 +6,7 @@ license that can be found in the LICENSE file.
 -->
 <manifest
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	package="org.golang.todo.network"
+	package="org.golang.todo.invader"
 	android:versionCode="1"
 	android:versionName="1.0">
 
@@ -16,12 +16,12 @@ license that can be found in the LICENSE file.
 	     http://developer.android.com/guide/topics/manifest/manifest-intro.html#perms -->
 	<uses-permission android:name="android.permission.INTERNET" />
 
-	<application android:label="network" android:debuggable="true">
+	<application android:label="invader" android:debuggable="true">
 
 	<activity android:name="org.golang.app.GoNativeActivity"
-		android:label="network"
+		android:label="invader"
 		android:configChanges="orientation|keyboardHidden">
-		<meta-data android:name="android.app.lib_name" android:value="network" />
+		<meta-data android:name="android.app.lib_name" android:value="invader" />
 		<intent-filter>
 			<action android:name="android.intent.action.MAIN" />
 			<category android:name="android.intent.category.LAUNCHER" />

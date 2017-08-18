@@ -35,10 +35,14 @@ func loadTexture(glc gl.Context, name string, yflip bool) (gl.Texture, error) {
 		return nilTexture, fmt.Errorf("unexpected image type: %s: %v", imgFile, img.ColorModel())
 	}
 
+	return uploadImage(glc, name, i, yflip)
+}
+
+func uploadImage(glc gl.Context, name string, i *image.NRGBA, yflip bool) (gl.Texture, error) {
 	b := i.Bounds()
-	log.Printf("nrgba image type: %s %dx%d", imgFile, b.Max.X, b.Max.Y)
+	log.Printf("NRGBA image: %s %dx%d", name, b.Max.X, b.Max.Y)
 	if yflip {
-		flipY(imgFile, i)
+		flipY(name, i)
 	}
 
 	t := glc.CreateTexture()

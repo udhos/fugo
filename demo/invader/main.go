@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"encoding/gob"
 	"image"
+	"image/color"
 	_ "image/png" // The _ means to import a package purely for its initialization side effects.
 	"io/ioutil"
 	"log"
@@ -58,6 +59,8 @@ type gameState struct {
 	//texImage        *image.NRGBA
 	texButtonFire gl.Texture
 	texButtonTurn gl.Texture
+
+	atlas *fontAtlas
 
 	minX, maxX, minY, maxY float64
 	shaderVert             string
@@ -438,6 +441,12 @@ func (game *gameState) start(glc gl.Context) {
 		log.Printf("start: texture load: %v", errLoad)
 	}
 
+	var errFont error
+	game.atlas, errFont = newAtlas(glc, color.NRGBA{128, 230, 128, 255})
+	if errFont != nil {
+		log.Printf("start: font: %v", errFont)
+	}
+
 	game.bufSquareElemData = glc.CreateBuffer()
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
 	glc.BufferData(gl.ARRAY_BUFFER, squareElemData, gl.STATIC_DRAW)
@@ -474,6 +483,11 @@ func (game *gameState) stop() {
 	log.Printf("stop")
 
 	glc := game.gl // shortcut
+
+	if game.atlas != nil {
+		game.atlas.delete()
+		game.atlas = nil
+	}
 
 	glc.DeleteProgram(game.program)
 	glc.DeleteProgram(game.programTex)
