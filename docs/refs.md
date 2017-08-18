@@ -10,3 +10,5 @@ https://www.slideshare.net/takuyaueda967/mobile-apps-by-pure-go-with-reverse-bin
 https://github.com/200sc/klangsynthese - audio
 
 https://github.com/faiface/beep - brings sound to any Go program
+
+https://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_Text_Rendering_02
