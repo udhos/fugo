@@ -279,6 +279,16 @@ func (game *gameState) paintTex(glc gl.Context, buttonWidth, buttonHeight float6
 	//elemSize := 4
 	glc.DrawElements(gl.TRIANGLES, elemCount, elemType, elemFirst*elemSize)
 
+	// font
+
+	var MVPfont goglmath.Matrix4
+	game.setOrtho(&MVPfont)
+	MVPfont.Translate(0, 0, 0, 1)
+	MVPfont.Scale(.1, .1, 1, 1)
+	glc.UniformMatrix4fv(game.texMVP, MVPfont.Data())
+
+	game.atlas.draw()
+
 	// clean-up
 
 	glc.DisableVertexAttribArray(game.texPosition)

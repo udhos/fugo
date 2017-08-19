@@ -7,28 +7,111 @@ import (
 	"bytes"
 	"log"
 	//"os"
-
+	"encoding/binary"
 	"image"
 	"image/color"
 	//"image/png"
 
 	//"golang.org/x/mobile/asset"
+	"golang.org/x/mobile/exp/f32"
 	"golang.org/x/mobile/gl"
 
 	"github.com/udhos/pixfont"
 )
 
 type fontAtlas struct {
-	glc gl.Context
-	tex gl.Texture
+	glc       gl.Context
+	tex       gl.Texture
+	vert      gl.Buffer
+	elem      gl.Buffer
+	elemCount int
+	coordVer  gl.Attrib
+	coordTex  gl.Attrib
 }
 
-func newAtlas(glc gl.Context, c color.Color) (*fontAtlas, error) {
-	a := &fontAtlas{}
+func (a *fontAtlas) write(s string) {
 
-	first := 32
-	pastend := 127
-	size := pastend - first
+	glc := a.glc // shortcut
+
+	v := make([]float32, 0, 4*5*len(s))
+	e := make([]uint32, 0, len(s))
+
+	for i, b := range s {
+
+		x1 := float32(i)
+		x2 := x1 + 1.0
+
+		c := b - fontFirst
+		unit := 1.0 / float32(fontCount)
+		s1 := float32(c) * unit
+		s2 := float32(c+1) * unit
+
+		v = append(v,
+			// vert       texture
+			// ---------  -------
+			x1, 1.0, 0.0, s1, 1.0, // 0
+			x1, 0.0, 0.0, s1, 0.0, // 1
+			x2, 0.0, 0.0, s2, 0.0, // 2
+			x2, 1.0, 0.0, s2, 1.0, // 3
+		)
+
+		j := 4 * uint32(i)
+
+		e = append(e,
+			j, j+1, j+2, // triangle 1
+			j+2, j+3, j, // triangle 2
+		)
+
+	}
+	a.elemCount = len(e)
+
+	bytesV := f32.Bytes(binary.LittleEndian, v...)
+	bytesE := intsToBytes(e)
+
+	glc.BindBuffer(gl.ARRAY_BUFFER, a.vert)
+	glc.BufferData(gl.ARRAY_BUFFER, bytesV, gl.DYNAMIC_DRAW)
+
+	glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, a.elem)
+	glc.BufferData(gl.ELEMENT_ARRAY_BUFFER, bytesE, gl.DYNAMIC_DRAW)
+}
+
+func (a *fontAtlas) draw() {
+
+	glc := a.glc // shortcut
+
+	glc.BindBuffer(gl.ARRAY_BUFFER, a.vert)
+	glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, a.elem)
+
+	elemFirst := 0
+	elemCount := a.elemCount
+	elemType := gl.Enum(gl.UNSIGNED_INT)
+	elemSize := 4 // 4-byte int
+
+	strideSize := 5 * 4 // 5 x 4 bytes (5 x 4-byte float)
+	itemsPosition := 3
+	itemsTexture := 2
+	offsetPosition := 0
+	offsetTexture := itemsPosition * 4 // 3 x 4 bytes
+
+	glc.VertexAttribPointer(a.coordVer, itemsPosition, gl.FLOAT, false, strideSize, offsetPosition)
+	glc.VertexAttribPointer(a.coordTex, itemsTexture, gl.FLOAT, false, strideSize, offsetTexture)
+
+	glc.BindTexture(gl.TEXTURE_2D, a.tex)
+
+	glc.DrawElements(gl.TRIANGLES, elemCount, elemType, elemFirst*elemSize)
+}
+
+const (
+	fontFirst   = 32
+	fontPastend = 127
+	fontCount   = fontPastend - fontFirst
+)
+
+func newAtlas(glc gl.Context, c color.Color, coordVert, coordTex gl.Attrib) (*fontAtlas, error) {
+
+	first := fontFirst
+	pastend := fontPastend
+	size := fontCount
 	b := make([]byte, 0, size)
 	buf := bytes.NewBuffer(b)
 
@@ -46,7 +129,7 @@ func newAtlas(glc gl.Context, c color.Color) (*fontAtlas, error) {
 	width := pixfont.MeasureString(str)
 	log.Printf("newAtlas: width=%d", width)
 
-	img := image.NewRGBA(image.Rect(0, 0, width, 8))
+	img := image.NewNRGBA(image.Rect(0, 0, width, 8))
 
 	bo := img.Bounds()
 	fontWidth := width / size
@@ -68,12 +151,25 @@ func newAtlas(glc gl.Context, c color.Color) (*fontAtlas, error) {
 		f.Close()
 	*/
 
+	tex, errUpload := uploadImage(glc, "<fontAtlas>", img, true)
+	if errUpload != nil {
+		return nil, errUpload
+	}
+
+	a := &fontAtlas{}
+
 	a.glc = glc
-	a.tex = glc.CreateTexture()
+	a.tex = tex
+	a.vert = glc.CreateBuffer()
+	a.elem = glc.CreateBuffer()
+	a.coordVer = coordVert
+	a.coordTex = coordTex
 
 	return a, nil
 }
 
 func (a *fontAtlas) delete() {
 	a.glc.DeleteTexture(a.tex)
+	a.glc.DeleteBuffer(a.vert)
+	a.glc.DeleteBuffer(a.elem)
 }

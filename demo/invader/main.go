@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/gob"
+	"fmt"
 	"image"
 	"image/color"
 	_ "image/png" // The _ means to import a package purely for its initialization side effects.
@@ -294,6 +295,8 @@ func main() {
 				game.missiles = t.WorldMissiles
 				game.cannons = t.Cannons
 				game.updateLast = time.Now()
+
+				game.atlas.write(fmt.Sprintf("%f", t.Fuel))
 			}
 		}
 
@@ -441,12 +444,6 @@ func (game *gameState) start(glc gl.Context) {
 		log.Printf("start: texture load: %v", errLoad)
 	}
 
-	var errFont error
-	game.atlas, errFont = newAtlas(glc, color.NRGBA{128, 230, 128, 255})
-	if errFont != nil {
-		log.Printf("start: font: %v", errFont)
-	}
-
 	game.bufSquareElemData = glc.CreateBuffer()
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
 	glc.BufferData(gl.ARRAY_BUFFER, squareElemData, gl.STATIC_DRAW)
@@ -454,6 +451,13 @@ func (game *gameState) start(glc gl.Context) {
 	game.bufSquareElemIndex = glc.CreateBuffer()
 	glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, game.bufSquareElemIndex)
 	glc.BufferData(gl.ELEMENT_ARRAY_BUFFER, squareElemIndex, gl.STATIC_DRAW)
+
+	var errFont error
+	game.atlas, errFont = newAtlas(glc, color.NRGBA{128, 230, 128, 255}, game.texPosition, game.texTextureCoord)
+	if errFont != nil {
+		log.Printf("start: font: %v", errFont)
+	}
+	game.atlas.write("invader")
 
 	glc.ClearColor(.5, .5, .5, 1) // gray background
 
