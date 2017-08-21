@@ -476,6 +476,7 @@ func (game *gameState) start(glc gl.Context) {
 	game.scoreTheir.write("?")
 
 	glc.ClearColor(.5, .5, .5, 1) // gray background
+	glc.ClearDepthf(1)            // default
 	glc.Enable(gl.DEPTH_TEST)     // enable depth testing
 	glc.DepthFunc(gl.LEQUAL)      // gl.LESS is default depth test
 	glc.DepthRangef(0, 1)         // default
