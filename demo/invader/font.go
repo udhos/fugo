@@ -20,18 +20,39 @@ import (
 )
 
 type fontAtlas struct {
-	glc       gl.Context
-	tex       gl.Texture
+	glc gl.Context
+	tex gl.Texture
+	//vert      gl.Buffer
+	//elem      gl.Buffer
+	//elemCount int
+	coordVer gl.Attrib
+	coordTex gl.Attrib
+}
+
+type fontText struct {
 	vert      gl.Buffer
 	elem      gl.Buffer
 	elemCount int
-	coordVer  gl.Attrib
-	coordTex  gl.Attrib
+	atlas     *fontAtlas
 }
 
-func (a *fontAtlas) write(s string) {
+func newText(atlas *fontAtlas) *fontText {
+	glc := atlas.glc
+	t := &fontText{}
+	t.atlas = atlas
+	t.vert = glc.CreateBuffer()
+	t.elem = glc.CreateBuffer()
+	return t
+}
 
-	glc := a.glc // shortcut
+func (t *fontText) delete() {
+	t.atlas.glc.DeleteBuffer(t.vert)
+	t.atlas.glc.DeleteBuffer(t.elem)
+}
+
+func (t *fontText) write(s string) {
+
+	glc := t.atlas.glc // shortcut
 
 	v := make([]float32, 0, 4*5*len(s))
 	e := make([]uint32, 0, len(s))
@@ -63,27 +84,27 @@ func (a *fontAtlas) write(s string) {
 		)
 
 	}
-	a.elemCount = len(e)
+	t.elemCount = len(e)
 
 	bytesV := f32.Bytes(binary.LittleEndian, v...)
 	bytesE := intsToBytes(e)
 
-	glc.BindBuffer(gl.ARRAY_BUFFER, a.vert)
+	glc.BindBuffer(gl.ARRAY_BUFFER, t.vert)
 	glc.BufferData(gl.ARRAY_BUFFER, bytesV, gl.DYNAMIC_DRAW)
 
-	glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, a.elem)
+	glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, t.elem)
 	glc.BufferData(gl.ELEMENT_ARRAY_BUFFER, bytesE, gl.DYNAMIC_DRAW)
 }
 
-func (a *fontAtlas) draw() {
+func (t *fontText) draw() {
 
-	glc := a.glc // shortcut
+	glc := t.atlas.glc // shortcut
 
-	glc.BindBuffer(gl.ARRAY_BUFFER, a.vert)
-	glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, a.elem)
+	glc.BindBuffer(gl.ARRAY_BUFFER, t.vert)
+	glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, t.elem)
 
 	elemFirst := 0
-	elemCount := a.elemCount
+	elemCount := t.elemCount
 	elemType := gl.Enum(gl.UNSIGNED_INT)
 	elemSize := 4 // 4-byte int
 
@@ -93,10 +114,10 @@ func (a *fontAtlas) draw() {
 	offsetPosition := 0
 	offsetTexture := itemsPosition * 4 // 3 x 4 bytes
 
-	glc.VertexAttribPointer(a.coordVer, itemsPosition, gl.FLOAT, false, strideSize, offsetPosition)
-	glc.VertexAttribPointer(a.coordTex, itemsTexture, gl.FLOAT, false, strideSize, offsetTexture)
+	glc.VertexAttribPointer(t.atlas.coordVer, itemsPosition, gl.FLOAT, false, strideSize, offsetPosition)
+	glc.VertexAttribPointer(t.atlas.coordTex, itemsTexture, gl.FLOAT, false, strideSize, offsetTexture)
 
-	glc.BindTexture(gl.TEXTURE_2D, a.tex)
+	glc.BindTexture(gl.TEXTURE_2D, t.atlas.tex)
 
 	glc.DrawElements(gl.TRIANGLES, elemCount, elemType, elemFirst*elemSize)
 }
@@ -162,8 +183,8 @@ func newAtlas(glc gl.Context, c color.Color, coordVert, coordTex gl.Attrib) (*fo
 
 	a.glc = glc
 	a.tex = tex
-	a.vert = glc.CreateBuffer()
-	a.elem = glc.CreateBuffer()
+	//a.vert = glc.CreateBuffer()
+	//a.elem = glc.CreateBuffer()
 	a.coordVer = coordVert
 	a.coordTex = coordTex
 
@@ -172,6 +193,6 @@ func newAtlas(glc gl.Context, c color.Color, coordVert, coordTex gl.Attrib) (*fo
 
 func (a *fontAtlas) delete() {
 	a.glc.DeleteTexture(a.tex)
-	a.glc.DeleteBuffer(a.vert)
-	a.glc.DeleteBuffer(a.elem)
+	//a.glc.DeleteBuffer(a.vert)
+	//a.glc.DeleteBuffer(a.elem)
 }

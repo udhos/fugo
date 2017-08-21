@@ -62,6 +62,7 @@ type gameState struct {
 	texButtonTurn gl.Texture
 
 	atlas *fontAtlas
+	t1    *fontText
 
 	minX, maxX, minY, maxY float64
 	shaderVert             string
@@ -296,7 +297,7 @@ func main() {
 				game.cannons = t.Cannons
 				game.updateLast = time.Now()
 
-				game.atlas.write(fmt.Sprintf("%f", t.Fuel))
+				game.t1.write(fmt.Sprintf("%f", t.Fuel))
 			}
 		}
 
@@ -457,7 +458,9 @@ func (game *gameState) start(glc gl.Context) {
 	if errFont != nil {
 		log.Printf("start: font: %v", errFont)
 	}
-	game.atlas.write("invader")
+
+	game.t1 = newText(game.atlas)
+	game.t1.write("invader")
 
 	glc.ClearColor(.5, .5, .5, 1) // gray background
 
@@ -487,6 +490,11 @@ func (game *gameState) stop() {
 	log.Printf("stop")
 
 	glc := game.gl // shortcut
+
+	if game.t1 != nil {
+		game.t1.delete()
+		game.t1 = nil
+	}
 
 	if game.atlas != nil {
 		game.atlas.delete()

@@ -26,14 +26,16 @@ func (game *gameState) paint() {
 	glc.Uniform4f(game.color, .5, .9, .5, 1) // green
 
 	screenWidth := game.maxX - game.minX
+	screenHeight := game.maxY - game.minY
+	statusBarHeight := .05 * screenHeight
+	scoreBarHeight := .06 * screenHeight
+	fieldTop := game.maxY - statusBarHeight - scoreBarHeight
 
-	//buttonWidth := screenWidth / float64(buttons)
 	buttonWidth := game.buttonEdge()
-	//buttonHeight := .2 * (game.maxY - game.minY)
 	buttonHeight := buttonWidth
 
 	// clamp height
-	maxH := .3 * (game.maxY - game.minY)
+	maxH := .3 * screenHeight
 	if buttonHeight > maxH {
 		buttonHeight = maxH
 	}
@@ -100,11 +102,10 @@ func (game *gameState) paint() {
 			canBuf = game.bufCannon
 		} else {
 			// downward
-			y = game.maxY
+			y = fieldTop
 			canBuf = game.bufCannonDown
 		}
 		var MVP goglmath.Matrix4
-		//goglmath.SetOrthoMatrix(&MVP, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
 		game.setOrtho(&MVP)
 		cannonX, _ := future.CannonX(can.CoordX, can.Speed, elap)
 		x := float64(cannonX)*(game.maxX-cannonWidth-game.minX) + game.minX
@@ -134,12 +135,12 @@ func (game *gameState) paint() {
 		if miss.Team == game.playerTeam {
 			// upward
 			minY := missileBottom
-			maxY := game.maxY - missileHeight
+			maxY := fieldTop - missileHeight
 			y = y*(maxY-minY) + minY
 		} else {
 			// downward
 			minY := cannonBottom
-			maxY := game.maxY - cannonHeight
+			maxY := fieldTop - cannonHeight
 			y = y*(minY-maxY) + maxY
 
 		}
@@ -287,7 +288,7 @@ func (game *gameState) paintTex(glc gl.Context, buttonWidth, buttonHeight float6
 	MVPfont.Scale(.1, .1, 1, 1)
 	glc.UniformMatrix4fv(game.texMVP, MVPfont.Data())
 
-	game.atlas.draw()
+	game.t1.draw()
 
 	// clean-up
 
