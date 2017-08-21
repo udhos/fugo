@@ -61,8 +61,10 @@ type gameState struct {
 	texButtonFire gl.Texture
 	texButtonTurn gl.Texture
 
-	atlas *fontAtlas
-	t1    *fontText
+	atlas      *fontAtlas
+	t1         *fontText
+	scoreOur   *fontText
+	scoreTheir *fontText
 
 	minX, maxX, minY, maxY float64
 	shaderVert             string
@@ -298,6 +300,13 @@ func main() {
 				game.updateLast = time.Now()
 
 				game.t1.write(fmt.Sprintf("%f", t.Fuel))
+
+				var our, their string
+				our = fmt.Sprintf("%d", t.Scores[t.Team])
+				their = fmt.Sprintf("%d", t.Scores[1-t.Team])
+				log.Printf("score: [%s] [%s]", our, their)
+				game.scoreOur.write(our)
+				game.scoreTheir.write(their)
 			}
 		}
 
@@ -461,6 +470,10 @@ func (game *gameState) start(glc gl.Context) {
 
 	game.t1 = newText(game.atlas)
 	game.t1.write("invader")
+	game.scoreOur = newText(game.atlas)
+	game.scoreOur = newText(game.atlas)
+	game.scoreTheir = newText(game.atlas)
+	game.scoreTheir = newText(game.atlas)
 
 	glc.ClearColor(.5, .5, .5, 1) // gray background
 
@@ -490,6 +503,16 @@ func (game *gameState) stop() {
 	log.Printf("stop")
 
 	glc := game.gl // shortcut
+
+	if game.scoreOur != nil {
+		game.scoreOur.delete()
+		game.scoreOur = nil
+	}
+
+	if game.scoreTheir != nil {
+		game.scoreTheir.delete()
+		game.scoreTheir = nil
+	}
 
 	if game.t1 != nil {
 		game.t1.delete()

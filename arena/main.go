@@ -19,7 +19,12 @@ type world struct {
 	input          chan inputMsg
 	updateInterval time.Duration
 	missileList    []*msg.Missile
-	teamCount      [2]int
+	teams          [2]team
+}
+
+type team struct {
+	count int // player count
+	score int // team score
 }
 
 type inputMsg struct {
@@ -70,23 +75,23 @@ SERVICE:
 		select {
 		case p := <-w.playerAdd:
 			p.team = 0
-			if w.teamCount[0] > w.teamCount[1] {
+			if w.teams[0].count > w.teams[1].count {
 				p.team = 1
 			}
-			log.Printf("player add: %v team=%d team0=%d team1=%d", p, p.team, w.teamCount[0], w.teamCount[1])
+			log.Printf("player add: %v team=%d team0=%d team1=%d", p, p.team, w.teams[0].count, w.teams[1].count)
 			w.playerTab = append(w.playerTab, p)
 
 			playerFuelSet(p, time.Now(), 5) // reset fuel to 50%
 			p.cannonStart = p.fuelStart
 			p.cannonSpeed = float32(.1 / 1.0) // 10% every 1 second
 			p.cannonCoordX = .5               // 50%
-			w.teamCount[p.team]++
+			w.teams[p.team].count++
 		case p := <-w.playerDel:
-			log.Printf("player del: %v team=%d team0=%d team1=%d", p, p.team, w.teamCount[0], w.teamCount[1])
+			log.Printf("player del: %v team=%d team0=%d team1=%d", p, p.team, w.teams[0].count, w.teams[1].count)
 			for i, pl := range w.playerTab {
 				if pl == p {
 					w.playerTab = append(w.playerTab[:i], w.playerTab[i+1:]...)
-					w.teamCount[p.team]--
+					w.teams[p.team].count--
 					log.Printf("player removed: %v", p)
 					continue SERVICE
 				}
@@ -193,6 +198,7 @@ func sendUpdatesToPlayer(w *world, p *player) {
 		Interval:      w.updateInterval,
 		WorldMissiles: w.missileList,
 		Team:          p.team,
+		Scores:        []int{w.teams[0].score, w.teams[1].score},
 	}
 
 	for _, p1 := range w.playerTab {

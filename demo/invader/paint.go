@@ -28,8 +28,9 @@ func (game *gameState) paint() {
 	screenWidth := game.maxX - game.minX
 	screenHeight := game.maxY - game.minY
 	statusBarHeight := .05 * screenHeight
-	scoreBarHeight := .06 * screenHeight
-	fieldTop := game.maxY - statusBarHeight - scoreBarHeight
+	scoreTop := game.maxY - statusBarHeight
+	scoreBarHeight := .04 * screenHeight
+	fieldTop := scoreTop - scoreBarHeight
 
 	buttonWidth := game.buttonEdge()
 	buttonHeight := buttonWidth
@@ -154,10 +155,10 @@ func (game *gameState) paint() {
 
 	glc.DisableVertexAttribArray(game.position)
 
-	game.paintTex(glc, buttonWidth, buttonHeight) // another shader
+	game.paintTex(glc, buttonWidth, buttonHeight, scoreTop, scoreBarHeight) // another shader
 }
 
-func (game *gameState) paintTex(glc gl.Context, buttonWidth, buttonHeight float64) {
+func (game *gameState) paintTex(glc gl.Context, buttonWidth, buttonHeight, scoreTop, scoreHeight float64) {
 
 	glc.Enable(gl.BLEND)
 	glc.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
@@ -289,6 +290,23 @@ func (game *gameState) paintTex(glc gl.Context, buttonWidth, buttonHeight float6
 	glc.UniformMatrix4fv(game.texMVP, MVPfont.Data())
 
 	game.t1.draw()
+
+	// score
+	var MVP goglmath.Matrix4
+	scaleFont := scoreHeight
+	scoreY := scoreTop - scaleFont
+
+	game.setOrtho(&MVP)
+	MVP.Translate(game.minX, scoreY, 0, 1)
+	MVP.Scale(scaleFont, scaleFont, 1, 1)
+	glc.UniformMatrix4fv(game.texMVP, MVP.Data())
+	game.scoreOur.draw()
+
+	game.setOrtho(&MVP)
+	MVP.Translate(0, scoreY, 0, 1) // FIXME coord X
+	MVP.Scale(scaleFont, scaleFont, 1, 1)
+	glc.UniformMatrix4fv(game.texMVP, MVP.Data())
+	game.scoreTheir.draw()
 
 	// clean-up
 
