@@ -126,6 +126,8 @@ func newAtlas(glc gl.Context, c color.Color, coordVert, coordTex gl.Attrib) (*fo
 
 	log.Printf("newAtlas: chars=%d str=%d: [%v]", size, len(str), str)
 
+	pixfont.Spacing = 0 // default: 1 pixel
+
 	width := pixfont.MeasureString(str)
 	log.Printf("newAtlas: width=%d", width)
 
