@@ -18,7 +18,7 @@ func (game *gameState) paint() {
 
 	elap := time.Since(game.updateLast)
 
-	glc.Clear(gl.COLOR_BUFFER_BIT) // draw ClearColor background
+	glc.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 	glc.UseProgram(game.program)
 	glc.EnableVertexAttribArray(game.position)
@@ -70,7 +70,6 @@ func (game *gameState) paint() {
 
 	// Fuel bar
 	glc.Uniform4f(game.color, .9, .9, .9, 1) // white
-	//squareMVP := goglmath.NewMatrix4Identity()
 	var squareMVP goglmath.Matrix4
 	game.setOrtho(&squareMVP)
 	squareMVP.Translate(game.minX, fuelBottom, 0, 1)
@@ -127,7 +126,6 @@ func (game *gameState) paint() {
 	for _, miss := range game.missiles {
 		//missileMVP := goglmath.NewMatrix4Identity()
 		var missileMVP goglmath.Matrix4
-		//goglmath.SetOrthoMatrix(&missileMVP, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
 		game.setOrtho(&missileMVP)
 		minX := game.minX + .5*cannonWidth - .5*missileWidth
 		maxX := game.maxX - .5*cannonWidth - .5*missileWidth
@@ -153,10 +151,41 @@ func (game *gameState) paint() {
 		glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
 	}
 
+	//game.debugZ(glc)
+
 	glc.DisableVertexAttribArray(game.position)
 
 	game.paintTex(glc, buttonWidth, buttonHeight, scoreTop, scoreBarHeight) // another shader
 }
+
+/*
+func (game *gameState) debugZ(glc gl.Context) {
+	var MVP goglmath.Matrix4
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
+	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+
+	glc.Uniform4f(game.color, .9, .9, .9, 1) // white
+	game.setOrtho(&MVP)
+	MVP.Translate(0, 0, .1, 1) // white z=.1 front - closer to eye
+	MVP.Scale(.1, .1, 1, 1)
+	glc.UniformMatrix4fv(game.P, MVP.Data())
+	glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
+
+	p1x, p1y, p1z, p1w := MVP.Transform(0, 0, 0, 1)
+
+	glc.Uniform4f(game.color, .9, .5, .5, 1) // red
+	game.setOrtho(&MVP)
+	MVP.Translate(.05, .05, -.1, 1) // red z=-.1 back - farther from eye
+	MVP.Scale(.1, .1, 1, 1)
+	glc.UniformMatrix4fv(game.P, MVP.Data())
+	glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
+
+	p2x, p2y, p2z, p2w := MVP.Transform(0, 0, 0, 1)
+
+	log.Printf("white=%v,%v,%v,%v red=%v,%v,%v,%v", p1x, p1y, p1z, p1w, p2x, p2y, p2z, p2w)
+	time.Sleep(time.Second)
+}
+*/
 
 func (game *gameState) paintTex(glc gl.Context, buttonWidth, buttonHeight, scoreTop, scoreHeight float64) {
 

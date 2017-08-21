@@ -471,11 +471,14 @@ func (game *gameState) start(glc gl.Context) {
 	game.t1 = newText(game.atlas)
 	game.t1.write("invader")
 	game.scoreOur = newText(game.atlas)
-	game.scoreOur = newText(game.atlas)
+	game.scoreOur.write("?")
 	game.scoreTheir = newText(game.atlas)
-	game.scoreTheir = newText(game.atlas)
+	game.scoreTheir.write("?")
 
 	glc.ClearColor(.5, .5, .5, 1) // gray background
+	glc.Enable(gl.DEPTH_TEST)     // enable depth testing
+	glc.DepthFunc(gl.LEQUAL)      // gl.LESS is default depth test
+	glc.DepthRangef(0, 1)         // default
 
 	game.gl = glc
 
@@ -543,6 +546,8 @@ func (game *gameState) stop() {
 }
 
 func (game *gameState) setOrtho(m *goglmath.Matrix4) {
+	// near=1 far=-1 -> keep Z
+	// near=-1 far=1 -> flip Z
 	goglmath.SetOrthoMatrix(m, game.minX, game.maxX, game.minY, game.maxY, -1, 1)
 }
 
