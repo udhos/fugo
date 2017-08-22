@@ -15,6 +15,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"strconv"
 
 	"github.com/udhos/goglmath"
 
@@ -319,9 +320,9 @@ func main() {
 				game.t1.write(fmt.Sprintf("%f", t.Fuel))
 
 				var our, their string
-				our = fmt.Sprintf("%d", t.Scores[t.Team])
-				their = fmt.Sprintf("%d", t.Scores[1-t.Team])
-				log.Printf("score: [%s] [%s]", our, their)
+				our = strconv.Itoa(t.Scores[t.Team])
+				their = strconv.Itoa(t.Scores[1-t.Team])
+				//log.Printf("score: [%s] [%s]", our, their)
 				game.scoreOur.write(our)
 				game.scoreTheir.write(their)
 			}
