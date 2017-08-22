@@ -198,7 +198,7 @@ func sendUpdatesToPlayer(w *world, p *player) {
 		Interval:      w.updateInterval,
 		WorldMissiles: w.missileList,
 		Team:          p.team,
-		Scores:        []int{w.teams[0].score, w.teams[1].score},
+		Scores:        [2]int{w.teams[0].score, w.teams[1].score},
 	}
 
 	for _, p1 := range w.playerTab {

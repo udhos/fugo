@@ -11,7 +11,7 @@ type Update struct {
 	WorldMissiles []*Missile
 	Cannons       []*Cannon
 	Team          int // notify player about his team
-	Scores        []int
+	Scores        [2]int
 }
 
 const (
