@@ -29,9 +29,9 @@ import (
 	"golang.org/x/mobile/exp/gl/glutil"
 	"golang.org/x/mobile/gl"
 
+	"github.com/udhos/fugo/future"
 	"github.com/udhos/fugo/msg"
 	"github.com/udhos/fugo/trace"
-	"github.com/udhos/fugo/future"
 )
 
 type gameState struct {
@@ -85,10 +85,10 @@ type gameState struct {
 
 func newGame() (*gameState, error) {
 	game := &gameState{
-		minX: -1,
-		maxX: 1,
-		minY: -1,
-		maxY: 1,
+		minX:     -1,
+		maxX:     1,
+		minY:     -1,
+		maxY:     1,
 		missiles: map[int]*msg.Missile{},
 	}
 
@@ -304,25 +304,25 @@ func main() {
 				elap := time.Since(game.updateLast)
 
 				missiles := map[int]*msg.Missile{}
-				for _,m := range t.WorldMissiles {
-				    old,found := game.missiles[m.ID]
-				    if !found {
-				       missiles[m.ID] = m
-				       continue
-				    }
-				    if old.Speed == m.Speed {
-				       // same speed
-				       	
-				       oldY := future.MissileY(old.CoordY, old.Speed, elap)
-				       newY := future.MissileY(m.CoordY, m.Speed, elap)
-				       if newY < oldY {
-				       	  continue // refuse to move back in time
-				       }
-				    }
-				    missiles[m.ID] = m
+				for _, m := range t.WorldMissiles {
+					old, found := game.missiles[m.ID]
+					if !found {
+						missiles[m.ID] = m
+						continue
+					}
+					if old.Speed == m.Speed {
+						// same speed
+
+						oldY := future.MissileY(old.CoordY, old.Speed, elap)
+						newY := future.MissileY(m.CoordY, m.Speed, elap)
+						if newY < oldY {
+							continue // refuse to move back in time
+						}
+					}
+					missiles[m.ID] = m
 				}
 				game.missiles = missiles
-				
+
 				game.t1.write(fmt.Sprintf("%f", t.Fuel))
 
 				var our, their string

@@ -133,7 +133,7 @@ SERVICE:
 				now := time.Now()
 				updateCannon(i.player, now)
 				miss1 := &msg.Missile{
-				      ID: missileID,
+					ID:     missileID,
 					CoordX: i.player.cannonCoordX,
 					Speed:  .5, // 50% every 1 second
 					Team:   i.player.team,
