@@ -39,6 +39,7 @@ type player struct {
 	cannonStart  time.Time
 	cannonSpeed  float32
 	cannonCoordX float32
+	cannonID     int
 	team         int
 }
 
@@ -68,6 +69,7 @@ func main() {
 	}
 
 	missileID := 0
+	cannonID := 0
 
 	ticker := time.NewTicker(w.updateInterval)
 
@@ -87,6 +89,8 @@ SERVICE:
 			p.cannonStart = p.fuelStart
 			p.cannonSpeed = float32(.1 / 1.0) // 10% every 1 second
 			p.cannonCoordX = .5               // 50%
+			p.cannonID = cannonID
+			cannonID++
 			w.teams[p.team].count++
 		case p := <-w.playerDel:
 			log.Printf("player del: %v team=%d team0=%d team1=%d", p, p.team, w.teams[0].count, w.teams[1].count)
@@ -207,6 +211,7 @@ func sendUpdatesToPlayer(w *world, p *player) {
 
 	for _, p1 := range w.playerTab {
 		cannon := msg.Cannon{
+			ID:     p1.cannonID,
 			Start:  p1.cannonStart,
 			CoordX: p1.cannonCoordX,
 			Speed:  p1.cannonSpeed,

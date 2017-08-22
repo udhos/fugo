@@ -38,6 +38,7 @@ type Missile struct {
 
 // Cannon belongs to player.
 type Cannon struct {
+	ID     int
 	Start  time.Time
 	CoordX float32
 	Speed  float32

@@ -13,9 +13,9 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
-	"strconv"
 
 	"github.com/udhos/goglmath"
 
@@ -80,7 +80,7 @@ type gameState struct {
 	updateInterval         time.Duration
 	updateLast             time.Time
 	missiles               map[int]*msg.Missile
-	cannons                []*msg.Cannon
+	cannons                map[int]*msg.Cannon
 	tracer                 *trace.Trace
 }
 
@@ -91,6 +91,7 @@ func newGame() (*gameState, error) {
 		minY:     -1,
 		maxY:     1,
 		missiles: map[int]*msg.Missile{},
+		cannons:  map[int]*msg.Cannon{},
 	}
 
 	vert, errVert := loadFull("shader.vert")
@@ -298,7 +299,7 @@ func main() {
 				game.playerTeam = t.Team
 				game.playerFuel = t.Fuel
 				game.updateInterval = t.Interval
-				game.cannons = t.Cannons
+				//game.cannons = t.Cannons
 
 				game.updateLast = time.Now()
 				elap := time.Since(game.updateLast)
@@ -316,6 +317,22 @@ func main() {
 					missiles[m.ID] = m
 				}
 				game.missiles = missiles
+
+				cannons := map[int]*msg.Cannon{}
+				for _, c := range t.Cannons {
+					old, found := game.cannons[c.ID]
+					if found {
+						if old.Speed == c.Speed {
+							oldX, _ := future.CannonX(old.CoordX, old.Speed, elap)
+							newX, _ := future.CannonX(c.CoordX, c.Speed, elap)
+							if (old.Speed >= 0 && newX < oldX) || (old.Speed < 0 && newX > oldX) {
+								continue // refuse to move back in time
+							}
+						}
+					}
+					cannons[c.ID] = c
+				}
+				game.cannons = cannons
 
 				game.t1.write(fmt.Sprintf("%f", t.Fuel))
 
