@@ -28,6 +28,7 @@ type Button struct {
 
 // Missile is issued by cannons.
 type Missile struct {
+	ID     int
 	CoordX float32
 	CoordY float32
 	Speed  float32

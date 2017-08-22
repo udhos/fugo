@@ -67,6 +67,8 @@ func main() {
 		return
 	}
 
+	missileID := 0
+
 	ticker := time.NewTicker(w.updateInterval)
 
 	log.Printf("main: entering service loop")
@@ -131,11 +133,13 @@ SERVICE:
 				now := time.Now()
 				updateCannon(i.player, now)
 				miss1 := &msg.Missile{
+				      ID: missileID,
 					CoordX: i.player.cannonCoordX,
 					Speed:  .5, // 50% every 1 second
 					Team:   i.player.team,
 					Start:  now,
 				}
+				missileID++
 				w.missileList = append(w.missileList, miss1)
 
 				log.Printf("input fire - fuel was=%v is=%v missiles=%d", fuel, playerFuel(i.player), len(w.missileList))

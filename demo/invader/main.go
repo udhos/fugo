@@ -31,6 +31,7 @@ import (
 
 	"github.com/udhos/fugo/msg"
 	"github.com/udhos/fugo/trace"
+	"github.com/udhos/fugo/future"
 )
 
 type gameState struct {
@@ -77,7 +78,7 @@ type gameState struct {
 	playerTeam             int
 	updateInterval         time.Duration
 	updateLast             time.Time
-	missiles               []*msg.Missile
+	missiles               map[int]*msg.Missile
 	cannons                []*msg.Cannon
 	tracer                 *trace.Trace
 }
@@ -88,6 +89,7 @@ func newGame() (*gameState, error) {
 		maxX: 1,
 		minY: -1,
 		maxY: 1,
+		missiles: map[int]*msg.Missile{},
 	}
 
 	vert, errVert := loadFull("shader.vert")
@@ -295,10 +297,32 @@ func main() {
 				game.playerTeam = t.Team
 				game.playerFuel = t.Fuel
 				game.updateInterval = t.Interval
-				game.missiles = t.WorldMissiles
 				game.cannons = t.Cannons
-				game.updateLast = time.Now()
+				//game.missiles = t.WorldMissiles
 
+				game.updateLast = time.Now()
+				elap := time.Since(game.updateLast)
+
+				missiles := map[int]*msg.Missile{}
+				for _,m := range t.WorldMissiles {
+				    old,found := game.missiles[m.ID]
+				    if !found {
+				       missiles[m.ID] = m
+				       continue
+				    }
+				    if old.Speed == m.Speed {
+				       // same speed
+				       	
+				       oldY := future.MissileY(old.CoordY, old.Speed, elap)
+				       newY := future.MissileY(m.CoordY, m.Speed, elap)
+				       if newY < oldY {
+				       	  continue // refuse to move back in time
+				       }
+				    }
+				    missiles[m.ID] = m
+				}
+				game.missiles = missiles
+				
 				game.t1.write(fmt.Sprintf("%f", t.Fuel))
 
 				var our, their string
