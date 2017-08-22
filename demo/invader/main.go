@@ -298,7 +298,6 @@ func main() {
 				game.playerFuel = t.Fuel
 				game.updateInterval = t.Interval
 				game.cannons = t.Cannons
-				//game.missiles = t.WorldMissiles
 
 				game.updateLast = time.Now()
 				elap := time.Since(game.updateLast)
@@ -306,13 +305,7 @@ func main() {
 				missiles := map[int]*msg.Missile{}
 				for _, m := range t.WorldMissiles {
 					old, found := game.missiles[m.ID]
-					if !found {
-						missiles[m.ID] = m
-						continue
-					}
-					if old.Speed == m.Speed {
-						// same speed
-
+					if found {
 						oldY := future.MissileY(old.CoordY, old.Speed, elap)
 						newY := future.MissileY(m.CoordY, m.Speed, elap)
 						if newY < oldY {
