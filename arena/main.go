@@ -96,7 +96,11 @@ SERVICE:
 			log.Printf("player del: %v team=%d team0=%d team1=%d", p, p.team, w.teams[0].count, w.teams[1].count)
 			for i, pl := range w.playerTab {
 				if pl == p {
-					w.playerTab = append(w.playerTab[:i], w.playerTab[i+1:]...)
+					//w.playerTab = append(w.playerTab[:i], w.playerTab[i+1:]...)
+					if i < len(w.playerTab)-1 {
+						w.playerTab[i] = w.playerTab[len(w.playerTab)-1]
+					}
+					w.playerTab = w.playerTab[:len(w.playerTab)-1]
 					w.teams[p.team].count--
 					log.Printf("player removed: %v", p)
 					continue SERVICE
