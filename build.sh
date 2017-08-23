@@ -79,6 +79,7 @@ get golang.org/x/net/ipv4
 check future
 check msg
 check trace
+check unit
 if [ "$1" != arena ]; then
 	mobilebuild demo/square
 	mobilebuild demo/triangle2

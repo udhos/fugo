@@ -11,6 +11,7 @@ import (
 	"golang.org/x/mobile/gl"
 
 	"github.com/udhos/fugo/future"
+	"github.com/udhos/fugo/unit"
 )
 
 func (game *gameState) paint() {
@@ -27,7 +28,7 @@ func (game *gameState) paint() {
 
 	screenWidth := game.maxX - game.minX
 	screenHeight := game.maxY - game.minY
-	statusBarHeight := .05 * screenHeight
+	statusBarHeight := .04 * screenHeight
 	scoreTop := game.maxY - statusBarHeight
 	scoreBarHeight := .04 * screenHeight
 	fieldTop := scoreTop - scoreBarHeight
@@ -55,7 +56,7 @@ func (game *gameState) paint() {
 	}
 
 	fuelBottom := game.minY + buttonHeight
-	fuelHeight := .04
+	fuelHeight := .04 * screenHeight
 
 	// Wire rectangle around fuel bar
 	//squareWireMVP := goglmath.NewMatrix4Identity()
@@ -80,10 +81,12 @@ func (game *gameState) paint() {
 	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
 	glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
 
-	cannonWidth := .1  // 10%
-	cannonHeight := .1 // 10%
+	//cannonWidth := .1  // 10%
+	cannonWidth := unit.CannonWidth * screenWidth
+	//cannonHeight := .1 // 10%
+	cannonHeight := unit.CannonHeight * screenHeight
 
-	cannonBottom := fuelBottom + fuelHeight + .01
+	cannonBottom := fuelBottom + fuelHeight + .01*screenHeight
 
 	// Cannons
 	for _, can := range game.cannons {
@@ -117,9 +120,9 @@ func (game *gameState) paint() {
 		glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
 	}
 
-	missileBottom := cannonBottom + cannonHeight
-	missileWidth := .03
-	missileHeight := .07
+	//missileBottom := cannonBottom + unit.CannonHeight
+	//missileWidth := .03
+	//missileHeight := .07
 
 	// Missiles
 	glc.Uniform4f(game.color, .9, .9, .4, 1) // yellow
@@ -127,24 +130,31 @@ func (game *gameState) paint() {
 		//missileMVP := goglmath.NewMatrix4Identity()
 		var missileMVP goglmath.Matrix4
 		game.setOrtho(&missileMVP)
-		minX := game.minX + .5*cannonWidth - .5*missileWidth
-		maxX := game.maxX - .5*cannonWidth - .5*missileWidth
-		x := float64(miss.CoordX)*(maxX-minX) + minX
-		y := float64(future.MissileY(miss.CoordY, miss.Speed, elap))
-		if miss.Team == game.playerTeam {
-			// upward
-			minY := missileBottom
-			maxY := fieldTop - missileHeight
-			y = y*(maxY-minY) + minY
-		} else {
-			// downward
-			minY := cannonBottom
-			maxY := fieldTop - cannonHeight
-			y = y*(minY-maxY) + maxY
+		/*
+			minX := game.minX + .5*cannonWidth - .5*missileWidth
+			maxX := game.maxX - .5*cannonWidth - .5*missileWidth
+			x := float64(miss.CoordX)*(maxX-minX) + minX
+			y := float64(future.MissileY(miss.CoordY, miss.Speed, elap))
+			if miss.Team == game.playerTeam {
+				// upward
+				minY := missileBottom
+				maxY := fieldTop - missileHeight
+				y = y*(maxY-minY) + minY
+			} else {
+				// downward
+				minY := cannonBottom
+				maxY := fieldTop - cannonHeight
+				y = y*(minY-maxY) + maxY
 
-		}
-		missileMVP.Translate(x, y, 0, 1)
-		missileMVP.Scale(missileWidth, missileHeight, 1, 1)
+			}
+			missileMVP.Translate(x, y, 0, 1)
+		*/
+		up := miss.Team == game.playerTeam
+		y := float64(future.MissileY(miss.CoordY, miss.Speed, elap))
+		screen := unit.Rect{X1: game.minX, Y1: game.minY, X2: game.maxX, Y2: game.maxY}
+		r := unit.MissileBox(screen, float64(miss.CoordX), y, fieldTop, cannonBottom, up)
+		missileMVP.Translate(r.X1, r.Y1, 0, 1)
+		missileMVP.Scale(unit.MissileWidth, unit.MissileHeight, 1, 1)
 		glc.UniformMatrix4fv(game.P, missileMVP.Data())
 		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
 		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)

@@ -191,6 +191,8 @@ func updateWorld(w *world) {
 	}
 	w.missileList = w.missileList[:size]
 
+	detectCollision(w, now)
+
 	for _, p := range w.playerTab {
 		sendUpdatesToPlayer(w, p)
 	}
