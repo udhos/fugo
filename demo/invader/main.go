@@ -170,7 +170,7 @@ func newGame() (*gameState, error) {
 
 	game.tracef("trace, hello from invader app")
 
-	game.updateInterval = time.Second
+	game.updateInterval = 2 * time.Second
 	game.updateLast = time.Now()
 
 	game.serverOutput = make(chan msg.Button)
@@ -311,7 +311,9 @@ func main() {
 						oldY := future.MissileY(old.CoordY, old.Speed, elap)
 						newY := future.MissileY(m.CoordY, m.Speed, elap)
 						if newY < oldY {
-							continue // refuse to move back in time
+							// refuse to move back in time
+							missiles[m.ID] = old // prevent deletion
+							continue
 						}
 					}
 					missiles[m.ID] = m
@@ -326,7 +328,9 @@ func main() {
 							oldX, _ := future.CannonX(old.CoordX, old.Speed, elap)
 							newX, _ := future.CannonX(c.CoordX, c.Speed, elap)
 							if (old.Speed >= 0 && newX < oldX) || (old.Speed < 0 && newX > oldX) {
-								continue // refuse to move back in time
+								// refuse to move back in time
+								cannons[c.ID] = old // prevent deletion
+								continue
 							}
 						}
 					}
