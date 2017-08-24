@@ -49,6 +49,7 @@ NEXT_MISSILE:
 				log.Printf("collision: %v %v", m, p)
 				hit = true
 				removeMissile(w, i)
+				w.teams[m.Team].score++
 				continue NEXT_MISSILE
 			}
 		}
