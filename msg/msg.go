@@ -44,4 +44,5 @@ type Cannon struct {
 	Speed  float32
 	Team   int
 	Player bool // belongs to player
+	Life   float32
 }

@@ -39,6 +39,7 @@ type player struct {
 	cannonStart  time.Time
 	cannonSpeed  float32
 	cannonCoordX float32
+	cannonLife   float32
 	cannonID     int
 	team         int
 }
@@ -91,6 +92,7 @@ SERVICE:
 			p.cannonSpeed = float32(.1 / 1.0) // 10% every 1 second
 			p.cannonCoordX = .5               // 50%
 			p.cannonID = cannonID
+			p.cannonLife = 1 // 100%
 			cannonID++
 			w.teams[p.team].count++
 		case p := <-w.playerDel:
@@ -237,6 +239,7 @@ func sendUpdatesToPlayer(w *world, p *player) {
 			CoordX: p1.cannonCoordX,
 			Speed:  p1.cannonSpeed,
 			Team:   p1.team,
+			Life:   p1.cannonLife,
 			Player: p1 == p,
 		}
 		update.Cannons = append(update.Cannons, &cannon)

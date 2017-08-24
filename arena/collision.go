@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	//"log"
 	"time"
 
 	"github.com/udhos/fugo/future"
@@ -39,6 +39,9 @@ NEXT_MISSILE:
 		mr := unit.MissileBox(left, right, float64(m.CoordX), mY, fieldTop, cannonBottom, mUp)
 
 		for _, p := range w.playerTab {
+			if p.cannonLife <= 0 {
+				continue
+			}
 			if m.Team == p.team {
 				continue
 			}
@@ -46,10 +49,13 @@ NEXT_MISSILE:
 			cUp := p.team == 0
 			cr := unit.CannonBox(left, right, float64(cX), fieldTop, cannonBottom, cUp)
 			if intersect(mr, cr) {
-				log.Printf("collision: %v %v", m, p)
-				hit = true
+				//log.Printf("collision: %v %v", m, p)
 				removeMissile(w, i)
-				w.teams[m.Team].score++
+				hit = true
+				p.cannonLife -= .25
+				if p.cannonLife <= 0 {
+					w.teams[m.Team].score++
+				}
 				continue NEXT_MISSILE
 			}
 		}

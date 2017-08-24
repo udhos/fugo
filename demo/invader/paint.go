@@ -70,20 +70,26 @@ func (game *gameState) paint() {
 		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
 		glc.DrawArrays(gl.LINE_LOOP, 0, squareWireVertexCount)
 	*/
-	fuelR := unit.Rect{X1: game.minX, Y1: fuelBottom, X2: game.minX + screenWidth, Y2: fuelBottom + fuelHeight}
-	game.drawWireRect(fuelR, .5, .9, .5, 1, .1)
+	fuelBarR := unit.Rect{X1: game.minX, Y1: fuelBottom, X2: game.minX + screenWidth, Y2: fuelBottom + fuelHeight}
+	game.drawWireRect(fuelBarR, .5, .9, .5, 1, .1)
 
 	// Fuel bar
-	glc.Uniform4f(game.color, .9, .9, .9, 1) // white
-	var squareMVP goglmath.Matrix4
-	game.setOrtho(&squareMVP)
-	squareMVP.Translate(game.minX, fuelBottom, 0, 1)
+	/*
+		glc.Uniform4f(game.color, .9, .9, .9, 1) // white
+		var squareMVP goglmath.Matrix4
+		game.setOrtho(&squareMVP)
+		squareMVP.Translate(game.minX, fuelBottom, 0, 1)
+		fuel := float64(future.Fuel(game.playerFuel, elap))
+		squareMVP.Scale(screenWidth*fuel/10, fuelHeight, 1, 1) // width is fuel
+		glc.UniformMatrix4fv(game.P, squareMVP.Data())
+		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
+		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+		glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
+	*/
+
 	fuel := float64(future.Fuel(game.playerFuel, elap))
-	squareMVP.Scale(screenWidth*fuel/10, fuelHeight, 1, 1) // width is fuel
-	glc.UniformMatrix4fv(game.P, squareMVP.Data())
-	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
-	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
-	glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
+	fuelR := unit.Rect{X1: game.minX, Y1: fuelBottom, X2: game.minX + screenWidth*fuel/10, Y2: fuelBottom + fuelHeight}
+	game.drawRect(fuelR, .9, .9, .9, 1, 0)
 
 	//cannonWidth := .1  // 10%
 	//cannonHeight := .1 // 10%
@@ -147,6 +153,22 @@ func (game *gameState) paint() {
 		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
 		glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
 
+		// life bar
+		lifeBarH := .02
+		lifeR := r
+		lifeR.X2 = lifeR.X1 + unit.CannonWidth*float64(can.Life)
+		lifeR2 := r
+		lifeR2.X1 = lifeR.X2
+		if up {
+			lifeR.Y2 = lifeR.Y1 + lifeBarH
+			lifeR2.Y2 = lifeR.Y2
+		} else {
+			lifeR.Y1 = lifeR.Y2 - lifeBarH
+			lifeR2.Y1 = lifeR.Y1
+		}
+		game.drawRect(lifeR, .5, .5, .8, 1, .05)
+		game.drawRect(lifeR2, .9, .5, .5, 1, .05)
+
 		game.drawWireRect(r, 1, 1, 1, 1, .1) // debug-only
 	}
 
@@ -156,11 +178,13 @@ func (game *gameState) paint() {
 
 	// Missiles
 	for _, miss := range game.missiles {
-		glc.Uniform4f(game.color, .9, .9, .4, 1) // yellow
+		/*
+			glc.Uniform4f(game.color, .9, .9, .4, 1) // yellow
 
-		//missileMVP := goglmath.NewMatrix4Identity()
-		var missileMVP goglmath.Matrix4
-		game.setOrtho(&missileMVP)
+			//missileMVP := goglmath.NewMatrix4Identity()
+			var missileMVP goglmath.Matrix4
+			game.setOrtho(&missileMVP)
+		*/
 		/*
 			minX := game.minX + .5*cannonWidth - .5*missileWidth
 			maxX := game.maxX - .5*cannonWidth - .5*missileWidth
@@ -184,12 +208,16 @@ func (game *gameState) paint() {
 		y := float64(future.MissileY(miss.CoordY, miss.Speed, elap))
 		//screen := unit.Rect{X1: game.minX, Y1: game.minY, X2: game.maxX, Y2: game.maxY}
 		r := unit.MissileBox(game.minX, game.maxX, float64(miss.CoordX), y, fieldTop, cannonBottom, up)
-		missileMVP.Translate(r.X1, r.Y1, 0, 1)
-		missileMVP.Scale(unit.MissileWidth, unit.MissileHeight, 1, 1)
-		glc.UniformMatrix4fv(game.P, missileMVP.Data())
-		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
-		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
-		glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
+		/*
+			missileMVP.Translate(r.X1, r.Y1, 0, 1)
+			missileMVP.Scale(unit.MissileWidth, unit.MissileHeight, 1, 1)
+			glc.UniformMatrix4fv(game.P, missileMVP.Data())
+			glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
+			glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+			glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
+		*/
+
+		game.drawRect(r, .9, .9, .4, 1, 0)
 
 		game.drawWireRect(r, 1, 1, 1, 1, .1) // debug-only
 	}
@@ -201,10 +229,25 @@ func (game *gameState) paint() {
 	game.paintTex(glc, buttonWidth, buttonHeight, scoreTop, scoreBarHeight) // another shader
 }
 
+func (game *gameState) drawRect(rect unit.Rect, r, g, b, a float32, z float64) {
+	glc := game.gl // shortcut
+
+	glc.Uniform4f(game.color, r, g, b, a)
+
+	var squareMVP goglmath.Matrix4
+	game.setOrtho(&squareMVP)
+	squareMVP.Translate(rect.X1, rect.Y1, z, 1)
+	squareMVP.Scale(rect.X2-rect.X1, rect.Y2-rect.Y1, 1, 1)
+	glc.UniformMatrix4fv(game.P, squareMVP.Data())
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
+	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+	glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
+}
+
 func (game *gameState) drawWireRect(rect unit.Rect, r, g, b, a float32, z float64) {
 	glc := game.gl // shortcut
 
-	glc.Uniform4f(game.color, r, g, b, a) // white
+	glc.Uniform4f(game.color, r, g, b, a)
 
 	var squareWireMVP goglmath.Matrix4
 	game.setOrtho(&squareWireMVP)
