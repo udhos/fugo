@@ -99,27 +99,55 @@ func (game *gameState) paint() {
 			glc.Uniform4f(game.color, .5, .9, .5, 1) // green
 		}
 
+		/*
+			var canBuf gl.Buffer
+			var y float64
+			up := can.Team == game.playerTeam
+			if up {
+				// upward
+				y = cannonBottom
+				canBuf = game.bufCannon
+			} else {
+				// downward
+				y = fieldTop
+				canBuf = game.bufCannonDown
+			}
+			var MVP goglmath.Matrix4
+			game.setOrtho(&MVP)
+			cannonX, _ := future.CannonX(can.CoordX, can.Speed, elap)
+			x := float64(cannonX)*(game.maxX-unit.CannonWidth-game.minX) + game.minX
+			MVP.Translate(x, y, 0, 1)
+			MVP.Scale(unit.CannonWidth, unit.CannonHeight, 1, 1) // 10% size
+			glc.UniformMatrix4fv(game.P, MVP.Data())
+			glc.BindBuffer(gl.ARRAY_BUFFER, canBuf)
+			glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+			glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
+		*/
+
+		cannonX, _ := future.CannonX(can.CoordX, can.Speed, elap)
+
 		var canBuf gl.Buffer
-		var y float64
-		if can.Team == game.playerTeam {
+		up := can.Team == game.playerTeam
+		if up {
 			// upward
-			y = cannonBottom
 			canBuf = game.bufCannon
 		} else {
 			// downward
-			y = fieldTop
 			canBuf = game.bufCannonDown
 		}
+
+		r := unit.CannonBox(game.minX, game.maxX, float64(cannonX), fieldTop, cannonBottom, up)
+
 		var MVP goglmath.Matrix4
 		game.setOrtho(&MVP)
-		cannonX, _ := future.CannonX(can.CoordX, can.Speed, elap)
-		x := float64(cannonX)*(game.maxX-unit.CannonWidth-game.minX) + game.minX
-		MVP.Translate(x, y, 0, 1)
-		MVP.Scale(unit.CannonWidth, unit.CannonHeight, 1, 1) // 10% size
+		MVP.Translate(r.X1, r.Y1, 0, 1)
+		MVP.Scale(unit.CannonWidth, unit.CannonHeight, 1, 1)
 		glc.UniformMatrix4fv(game.P, MVP.Data())
 		glc.BindBuffer(gl.ARRAY_BUFFER, canBuf)
 		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
 		glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
+
+		game.drawWireRect(r, 1, 1, 1, 1, .1) // debug-only
 	}
 
 	//missileBottom := cannonBottom + unit.CannonHeight
@@ -163,7 +191,7 @@ func (game *gameState) paint() {
 		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
 		glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
 
-		game.drawWireRect(r, 1, 1, 1, 1, .1)
+		game.drawWireRect(r, 1, 1, 1, 1, .1) // debug-only
 	}
 
 	//game.debugZ(glc)

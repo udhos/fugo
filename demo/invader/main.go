@@ -611,10 +611,17 @@ var cannonData = f32.Bytes(binary.LittleEndian,
 	1.0, 0.0, 0.0,
 )
 
+/*
 var cannonDownData = f32.Bytes(binary.LittleEndian,
 	0.5, -1.0, 0.0,
 	1.0, 0.0, 0.0,
 	0.0, 0.0, 0.0,
+)
+*/
+var cannonDownData = f32.Bytes(binary.LittleEndian,
+	0.5, 0.0, 0.0,
+	1.0, 1.0, 0.0,
+	0.0, 1.0, 0.0,
 )
 
 var squareData = f32.Bytes(binary.LittleEndian,
