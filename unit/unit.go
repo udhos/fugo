@@ -16,6 +16,11 @@ type Rect struct {
 	X1, Y1, X2, Y2 float64
 }
 
+// Bounding returns rectangle vertices.
+func (r Rect) Bounding() (float64, float64, float64, float64) {
+	return r.X1, r.Y1, r.X2, r.Y2
+}
+
 // CannonBox returns bounding box.
 func CannonBox(gameMinX, gameMaxX, x, fieldTop, cannonBottom float64, up bool) Rect {
 	cx := x*(gameMaxX-CannonWidth-gameMinX) + gameMinX

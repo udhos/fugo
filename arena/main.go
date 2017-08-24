@@ -170,6 +170,9 @@ func updateCannon(p *player, now time.Time) {
 
 func updateWorld(w *world) {
 	now := time.Now()
+
+	detectCollision(w, now)
+
 	for _, p := range w.playerTab {
 		updateCannon(p, now)
 	}
@@ -190,8 +193,6 @@ func updateWorld(w *world) {
 		}
 	}
 	w.missileList = w.missileList[:size]
-
-	detectCollision(w, now)
 
 	for _, p := range w.playerTab {
 		sendUpdatesToPlayer(w, p)
