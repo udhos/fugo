@@ -98,11 +98,13 @@ func (game *gameState) paint() {
 
 	// Cannons
 	for _, can := range game.cannons {
-		if can.Player {
-			glc.Uniform4f(game.color, .2, .2, .8, 1) // blue
-		} else {
-			//glc.Uniform4f(game.color, .9, .2, .2, 1) // red
-			glc.Uniform4f(game.color, .5, .9, .5, 1) // green
+		switch {
+		case can.Life <= 0:
+			glc.Uniform4f(game.color, .9, .2, .2, 1) // red - dead
+		case can.Player:
+			glc.Uniform4f(game.color, .2, .2, .8, 1) // blue - player
+		default:
+			glc.Uniform4f(game.color, .5, .9, .5, 1) // green - other
 		}
 
 		/*

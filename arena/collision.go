@@ -55,6 +55,9 @@ NEXT_MISSILE:
 				p.cannonLife -= .25
 				if p.cannonLife <= 0 {
 					w.teams[m.Team].score++
+					p.cannonLife = 0    // cosmetic
+					p.cannonCoordX = cX // cannon freeze
+					p.cannonSpeed = 0   // cannon freeze
 				}
 				continue NEXT_MISSILE
 			}
