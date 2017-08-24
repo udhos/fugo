@@ -60,14 +60,18 @@ func (game *gameState) paint() {
 
 	// Wire rectangle around fuel bar
 	//squareWireMVP := goglmath.NewMatrix4Identity()
-	var squareWireMVP goglmath.Matrix4
-	game.setOrtho(&squareWireMVP)
-	squareWireMVP.Translate(game.minX, fuelBottom, .1, 1) // z=.1 put in front of fuel bar
-	squareWireMVP.Scale(screenWidth, fuelHeight, 1, 1)
-	glc.UniformMatrix4fv(game.P, squareWireMVP.Data())
-	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareWire)
-	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
-	glc.DrawArrays(gl.LINE_LOOP, 0, squareWireVertexCount)
+	/*
+		var squareWireMVP goglmath.Matrix4
+		game.setOrtho(&squareWireMVP)
+		squareWireMVP.Translate(game.minX, fuelBottom, .1, 1) // z=.1 put in front of fuel bar
+		squareWireMVP.Scale(screenWidth, fuelHeight, 1, 1)
+		glc.UniformMatrix4fv(game.P, squareWireMVP.Data())
+		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareWire)
+		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+		glc.DrawArrays(gl.LINE_LOOP, 0, squareWireVertexCount)
+	*/
+	fuelR := unit.Rect{X1: game.minX, Y1: fuelBottom, X2: game.minX + screenWidth, Y2: fuelBottom + fuelHeight}
+	game.drawWireRect(fuelR, .5, .9, .5, 1, .1)
 
 	// Fuel bar
 	glc.Uniform4f(game.color, .9, .9, .9, 1) // white
@@ -123,8 +127,9 @@ func (game *gameState) paint() {
 	//missileHeight := .07
 
 	// Missiles
-	glc.Uniform4f(game.color, .9, .9, .4, 1) // yellow
 	for _, miss := range game.missiles {
+		glc.Uniform4f(game.color, .9, .9, .4, 1) // yellow
+
 		//missileMVP := goglmath.NewMatrix4Identity()
 		var missileMVP goglmath.Matrix4
 		game.setOrtho(&missileMVP)
@@ -158,7 +163,7 @@ func (game *gameState) paint() {
 		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
 		glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
 
-		//game.drawWireRect(r,1,1,1,1,.1)
+		game.drawWireRect(r, 1, 1, 1, 1, .1)
 	}
 
 	//game.debugZ(glc)
