@@ -24,16 +24,18 @@ func intersect(b1, b2 box) bool {
 	return !noOverlap
 }
 
-func detectCollision(w *world, now time.Time) {
+func detectCollision(w *world, now time.Time) bool {
 
-	//field := unit.Rect{X1: -1, Y1: -1, X2: 1, Y2: 1}
+	left := -1.0
+	right := 1.0
 	fieldTop := 1.0
 	cannonBottom := -1.0
+	hit := false
 
 	for _, m := range w.missileList {
 		mY := float64(future.MissileY(m.CoordY, m.Speed, now.Sub(m.Start)))
 		mUp := m.Team == 0
-		mr := unit.MissileBox(-1, 1, float64(m.CoordX), mY, fieldTop, cannonBottom, mUp)
+		mr := unit.MissileBox(left, right, float64(m.CoordX), mY, fieldTop, cannonBottom, mUp)
 
 		for _, p := range w.playerTab {
 			if m.Team == p.team {
@@ -41,10 +43,13 @@ func detectCollision(w *world, now time.Time) {
 			}
 			cX, _ := future.CannonX(p.cannonCoordX, p.cannonSpeed, now.Sub(p.cannonStart))
 			cUp := p.team == 0
-			cr := unit.CannonBox(-1, 1, float64(cX), fieldTop, cannonBottom, cUp)
+			cr := unit.CannonBox(left, right, float64(cX), fieldTop, cannonBottom, cUp)
 			if intersect(mr, cr) {
 				log.Printf("collision: %v %v", m, p)
+				hit = true
 			}
 		}
 	}
+
+	return hit
 }

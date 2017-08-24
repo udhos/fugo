@@ -71,7 +71,8 @@ func main() {
 	missileID := 0
 	cannonID := 0
 
-	ticker := time.NewTicker(w.updateInterval)
+	tickerUpdate := time.NewTicker(w.updateInterval)
+	tickerCollision := time.NewTicker(250 * time.Millisecond)
 
 	log.Printf("main: entering service loop")
 SERVICE:
@@ -155,10 +156,14 @@ SERVICE:
 				updateWorld(&w)
 			}
 
-		case <-ticker.C:
+		case <-tickerUpdate.C:
 			//log.Printf("tick: %v", t)
 
 			updateWorld(&w)
+		case <-tickerCollision.C:
+			if detectCollision(&w, time.Now()) {
+				updateWorld(&w)
+			}
 		}
 	}
 }
@@ -170,8 +175,6 @@ func updateCannon(p *player, now time.Time) {
 
 func updateWorld(w *world) {
 	now := time.Now()
-
-	detectCollision(w, now)
 
 	for _, p := range w.playerTab {
 		updateCannon(p, now)
