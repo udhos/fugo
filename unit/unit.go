@@ -17,33 +17,27 @@ type Rect struct {
 }
 
 // MissileBox returns bounding box.
-func MissileBox(screen Rect, x, y, fieldTop, cannonBottom float64, up bool) Rect {
-	gameMinX := screen.X1
-	gameMinY := screen.Y1
-	gameMaxX := screen.X2
-	gameMaxY := screen.Y2
-	screenWidth := gameMaxX - gameMinX
-	screenHeight := gameMaxY - gameMinY
-	minX := gameMinX + .5*CannonWidth*screenWidth - .5*MissileWidth*screenWidth
-	maxX := gameMaxX - .5*CannonWidth*screenWidth - .5*MissileWidth*screenWidth
+func MissileBox(gameMinX, gameMaxX, x, y, fieldTop, cannonBottom float64, up bool) Rect {
+	minX := gameMinX + .5*CannonWidth - .5*MissileWidth
+	maxX := gameMaxX - .5*CannonWidth - .5*MissileWidth
 	fx := x*(maxX-minX) + minX
 	var fy float64
 	if up {
 		// upward
-		minY := cannonBottom + CannonHeight*screenHeight
-		maxY := fieldTop - MissileHeight*screenHeight
+		minY := cannonBottom + CannonHeight
+		maxY := fieldTop - MissileHeight
 		fy = y*(maxY-minY) + minY
 	} else {
 		// downward
 		minY := cannonBottom
-		maxY := fieldTop - CannonHeight*screenHeight
+		maxY := fieldTop - CannonHeight
 		fy = y*(minY-maxY) + maxY
 
 	}
 	return Rect{
 		X1: fx,
 		Y1: fy,
-		X2: fx + MissileWidth*screenWidth,
-		Y2: fy + MissileHeight*screenHeight,
+		X2: fx + MissileWidth,
+		Y2: fy + MissileHeight,
 	}
 }

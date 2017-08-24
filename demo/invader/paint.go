@@ -28,9 +28,9 @@ func (game *gameState) paint() {
 
 	screenWidth := game.maxX - game.minX
 	screenHeight := game.maxY - game.minY
-	statusBarHeight := .04 * screenHeight
+	statusBarHeight := .05
 	scoreTop := game.maxY - statusBarHeight
-	scoreBarHeight := .04 * screenHeight
+	scoreBarHeight := .06
 	fieldTop := scoreTop - scoreBarHeight
 
 	buttonWidth := game.buttonEdge()
@@ -82,11 +82,9 @@ func (game *gameState) paint() {
 	glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
 
 	//cannonWidth := .1  // 10%
-	cannonWidth := unit.CannonWidth * screenWidth
 	//cannonHeight := .1 // 10%
-	cannonHeight := unit.CannonHeight * screenHeight
 
-	cannonBottom := fuelBottom + fuelHeight + .01*screenHeight
+	cannonBottom := fuelBottom + fuelHeight + .01
 
 	// Cannons
 	for _, can := range game.cannons {
@@ -111,9 +109,9 @@ func (game *gameState) paint() {
 		var MVP goglmath.Matrix4
 		game.setOrtho(&MVP)
 		cannonX, _ := future.CannonX(can.CoordX, can.Speed, elap)
-		x := float64(cannonX)*(game.maxX-cannonWidth-game.minX) + game.minX
+		x := float64(cannonX)*(game.maxX-unit.CannonWidth-game.minX) + game.minX
 		MVP.Translate(x, y, 0, 1)
-		MVP.Scale(cannonWidth, cannonHeight, 1, 1) // 10% size
+		MVP.Scale(unit.CannonWidth, unit.CannonHeight, 1, 1) // 10% size
 		glc.UniformMatrix4fv(game.P, MVP.Data())
 		glc.BindBuffer(gl.ARRAY_BUFFER, canBuf)
 		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
@@ -151,14 +149,16 @@ func (game *gameState) paint() {
 		*/
 		up := miss.Team == game.playerTeam
 		y := float64(future.MissileY(miss.CoordY, miss.Speed, elap))
-		screen := unit.Rect{X1: game.minX, Y1: game.minY, X2: game.maxX, Y2: game.maxY}
-		r := unit.MissileBox(screen, float64(miss.CoordX), y, fieldTop, cannonBottom, up)
+		//screen := unit.Rect{X1: game.minX, Y1: game.minY, X2: game.maxX, Y2: game.maxY}
+		r := unit.MissileBox(game.minX, game.maxX, float64(miss.CoordX), y, fieldTop, cannonBottom, up)
 		missileMVP.Translate(r.X1, r.Y1, 0, 1)
 		missileMVP.Scale(unit.MissileWidth, unit.MissileHeight, 1, 1)
 		glc.UniformMatrix4fv(game.P, missileMVP.Data())
 		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
 		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
 		glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
+
+		//game.drawWireRect(r,1,1,1,1,.1)
 	}
 
 	//game.debugZ(glc)
@@ -166,6 +166,21 @@ func (game *gameState) paint() {
 	glc.DisableVertexAttribArray(game.position)
 
 	game.paintTex(glc, buttonWidth, buttonHeight, scoreTop, scoreBarHeight) // another shader
+}
+
+func (game *gameState) drawWireRect(rect unit.Rect, r, g, b, a float32, z float64) {
+	glc := game.gl // shortcut
+
+	glc.Uniform4f(game.color, r, g, b, a) // white
+
+	var squareWireMVP goglmath.Matrix4
+	game.setOrtho(&squareWireMVP)
+	squareWireMVP.Translate(rect.X1, rect.Y1, z, 1)
+	squareWireMVP.Scale(rect.X2-rect.X1, rect.Y2-rect.Y1, 1, 1)
+	glc.UniformMatrix4fv(game.P, squareWireMVP.Data())
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareWire)
+	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+	glc.DrawArrays(gl.LINE_LOOP, 0, squareWireVertexCount)
 }
 
 /*
