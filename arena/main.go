@@ -117,6 +117,10 @@ SERVICE:
 			case msg.Button:
 				log.Printf("input button: %v", m)
 
+				if i.player.cannonLife <= 0 {
+					continue // cannon destroyed
+				}
+
 				if m.ID == msg.ButtonTurn {
 					p := i.player
 					//p.cannonCoordX, p.cannonSpeed = future.CannonX(p.cannonCoordX, p.cannonSpeed, time.Since(p.cannonStart))
