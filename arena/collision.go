@@ -33,7 +33,8 @@ func detectCollision(w *world, now time.Time) bool {
 	hit := false
 
 NEXT_MISSILE:
-	for i, m := range w.missileList {
+	for i := 0; i < len(w.missileList); i++ {
+		m := w.missileList[i]
 		mY := float64(future.MissileY(m.CoordY, m.Speed, now.Sub(m.Start)))
 		mUp := m.Team == 0
 		mr := unit.MissileBox(left, right, float64(m.CoordX), mY, fieldTop, cannonBottom, mUp)
@@ -51,6 +52,7 @@ NEXT_MISSILE:
 			if intersect(mr, cr) {
 				//log.Printf("collision: %v %v", m, p)
 				removeMissile(w, i)
+				i--
 				hit = true
 				p.cannonLife -= .25
 				if p.cannonLife <= 0 {
