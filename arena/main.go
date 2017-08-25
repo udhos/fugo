@@ -194,25 +194,15 @@ func updateWorld(w *world) {
 		updateCannon(p, now)
 	}
 
-	//size := len(w.missileList)
 	for i := 0; i < len(w.missileList); i++ {
 		m := w.missileList[i]
 		m.CoordY = future.MissileY(m.CoordY, m.Speed, time.Since(m.Start))
 		m.Start = now
 		if m.CoordY >= 1 {
-			/*
-				size--
-				if i >= size {
-					// last element
-					break
-				}
-				w.missileList[i] = w.missileList[size]
-			*/
 			removeMissile(w, i)
 			i--
 		}
 	}
-	//w.missileList = w.missileList[:size]
 
 	for _, p := range w.playerTab {
 		sendUpdatesToPlayer(w, p)
