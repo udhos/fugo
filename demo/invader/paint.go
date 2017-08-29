@@ -215,50 +215,64 @@ func (game *gameState) paintTex(glc gl.Context, buttonWidth, buttonHeight, score
 
 	// draw button - fire
 
-	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
-	glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, game.bufSquareElemIndex)
+	/*
+		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
+		glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, game.bufSquareElemIndex)
 
-	// square geometry
-	elemFirst := 0
-	elemCount := squareElemIndexCount // 6
-	elemType := gl.Enum(gl.UNSIGNED_INT)
-	elemSize := 4
+		// square geometry
+		elemFirst := 0
+		elemCount := squareElemIndexCount // 6
+		elemType := gl.Enum(gl.UNSIGNED_INT)
+		elemSize := 4
 
-	strideSize := 5 * 4 // 5 x 4 bytes
-	itemsPosition := 3
-	itemsTexture := 2
-	offsetPosition := 0
-	offsetTexture := itemsPosition * 4 // 3 x 4 bytes
-	glc.VertexAttribPointer(game.texPosition, itemsPosition, gl.FLOAT, false, strideSize, offsetPosition)
-	glc.VertexAttribPointer(game.texTextureCoord, itemsTexture, gl.FLOAT, false, strideSize, offsetTexture)
+		strideSize := 5 * 4 // 5 x 4 bytes
+		itemsPosition := 3
+		itemsTexture := 2
+		offsetPosition := 0
+		offsetTexture := itemsPosition * 4 // 3 x 4 bytes
+		glc.VertexAttribPointer(game.texPosition, itemsPosition, gl.FLOAT, false, strideSize, offsetPosition)
+		glc.VertexAttribPointer(game.texTextureCoord, itemsTexture, gl.FLOAT, false, strideSize, offsetTexture)
+
+		fireIndex := 0
+		var MVPfire goglmath.Matrix4
+		game.setOrtho(&MVPfire)
+		scaleButtonFire := buttonHeight // FIXME using square -- should use image aspect?
+		xFire := game.minX + float64(fireIndex)*buttonWidth
+		MVPfire.Translate(xFire, game.minY, 0, 1)
+		MVPfire.Scale(scaleButtonFire, scaleButtonFire, 1, 1)
+		glc.UniformMatrix4fv(game.texMVP, MVPfire.Data())
+
+		glc.BindTexture(gl.TEXTURE_2D, game.texButtonFire)
+
+		glc.DrawElements(gl.TRIANGLES, elemCount, elemType, elemFirst*elemSize)
+	*/
 
 	fireIndex := 0
-	var MVPfire goglmath.Matrix4
-	game.setOrtho(&MVPfire)
 	scaleButtonFire := buttonHeight // FIXME using square -- should use image aspect?
 	xFire := game.minX + float64(fireIndex)*buttonWidth
-	MVPfire.Translate(xFire, game.minY, 0, 1)
-	MVPfire.Scale(scaleButtonFire, scaleButtonFire, 1, 1)
-	glc.UniformMatrix4fv(game.texMVP, MVPfire.Data())
-
-	glc.BindTexture(gl.TEXTURE_2D, game.texButtonFire)
-
-	glc.DrawElements(gl.TRIANGLES, elemCount, elemType, elemFirst*elemSize)
+	game.drawImage(game.texButtonFire, xFire, game.minY, scaleButtonFire, scaleButtonFire)
 
 	// draw button - turn
 
+	/*
+		turnIndex := 1
+		var MVPturn goglmath.Matrix4
+		game.setOrtho(&MVPturn)
+		scaleButtonTurn := buttonHeight // FIXME using square -- should use image aspect?
+		xTurn := game.minX + float64(turnIndex)*buttonWidth
+		MVPturn.Translate(xTurn, game.minY, 0, 1)
+		MVPturn.Scale(scaleButtonTurn, scaleButtonTurn, 1, 1)
+		glc.UniformMatrix4fv(game.texMVP, MVPturn.Data())
+
+		glc.BindTexture(gl.TEXTURE_2D, game.texButtonTurn)
+
+		glc.DrawElements(gl.TRIANGLES, elemCount, elemType, elemFirst*elemSize)
+	*/
+
 	turnIndex := 1
-	var MVPturn goglmath.Matrix4
-	game.setOrtho(&MVPturn)
 	scaleButtonTurn := buttonHeight // FIXME using square -- should use image aspect?
 	xTurn := game.minX + float64(turnIndex)*buttonWidth
-	MVPturn.Translate(xTurn, game.minY, 0, 1)
-	MVPturn.Scale(scaleButtonTurn, scaleButtonTurn, 1, 1)
-	glc.UniformMatrix4fv(game.texMVP, MVPturn.Data())
-
-	glc.BindTexture(gl.TEXTURE_2D, game.texButtonTurn)
-
-	glc.DrawElements(gl.TRIANGLES, elemCount, elemType, elemFirst*elemSize)
+	game.drawImage(game.texButtonTurn, xTurn, game.minY, scaleButtonTurn, scaleButtonTurn)
 
 	// font
 
@@ -293,4 +307,35 @@ func (game *gameState) paintTex(glc gl.Context, buttonWidth, buttonHeight, score
 	glc.DisableVertexAttribArray(game.texTextureCoord)
 
 	glc.Disable(gl.BLEND)
+}
+
+func (game *gameState) drawImage(tex gl.Texture, x, y, width, height float64) {
+	glc := game.gl // shortcut
+
+	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
+	glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, game.bufSquareElemIndex)
+
+	// square geometry
+	elemFirst := 0
+	elemCount := squareElemIndexCount // 6
+	elemType := gl.Enum(gl.UNSIGNED_INT)
+	elemSize := 4
+
+	strideSize := 5 * 4 // 5 x 4 bytes
+	itemsPosition := 3
+	itemsTexture := 2
+	offsetPosition := 0
+	offsetTexture := itemsPosition * 4 // 3 x 4 bytes
+
+	glc.VertexAttribPointer(game.texPosition, itemsPosition, gl.FLOAT, false, strideSize, offsetPosition)
+	glc.VertexAttribPointer(game.texTextureCoord, itemsTexture, gl.FLOAT, false, strideSize, offsetTexture)
+
+	var MVP goglmath.Matrix4
+	game.setOrtho(&MVP)
+	MVP.Translate(x, y, 0, 1)
+	MVP.Scale(width, height, 1, 1)
+	glc.UniformMatrix4fv(game.texMVP, MVP.Data())
+
+	glc.BindTexture(gl.TEXTURE_2D, tex)
+	glc.DrawElements(gl.TRIANGLES, elemCount, elemType, elemFirst*elemSize)
 }
