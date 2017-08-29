@@ -62,6 +62,7 @@ type gameState struct {
 	//texImage        *image.NRGBA
 	texButtonFire gl.Texture
 	texButtonTurn gl.Texture
+	ship          gl.Texture
 
 	atlas      *fontAtlas
 	t1         *fontText
@@ -492,6 +493,10 @@ func (game *gameState) start(glc gl.Context) {
 	if errLoad != nil {
 		log.Printf("start: texture load: %v", errLoad)
 	}
+	game.ship, errLoad = loadTexture(glc, "ship.png", true)
+	if errLoad != nil {
+		log.Printf("start: texture load: %v", errLoad)
+	}
 
 	game.bufSquareElemData = glc.CreateBuffer()
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
@@ -572,6 +577,7 @@ func (game *gameState) stop() {
 	//glc.DeleteTexture(game.texTexture)
 	glc.DeleteTexture(game.texButtonFire)
 	glc.DeleteTexture(game.texButtonTurn)
+	glc.DeleteTexture(game.ship)
 	glc.DeleteBuffer(game.bufSquareElemIndex)
 	glc.DeleteBuffer(game.bufSquareElemData)
 

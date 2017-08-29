@@ -82,26 +82,31 @@ func (game *gameState) paint() {
 
 		cannonX, _ := future.CannonX(can.CoordX, can.Speed, elap)
 
-		var canBuf gl.Buffer
+		/*
+			var canBuf gl.Buffer
+			if up {
+				// upward
+				canBuf = game.bufCannon
+			} else {
+				// downward
+				canBuf = game.bufCannonDown
+			}
+		*/
+
 		up := can.Team == game.playerTeam
-		if up {
-			// upward
-			canBuf = game.bufCannon
-		} else {
-			// downward
-			canBuf = game.bufCannonDown
-		}
 
 		r := unit.CannonBox(game.minX, game.maxX, float64(cannonX), fieldTop, cannonBottom, up)
 
-		var MVP goglmath.Matrix4
-		game.setOrtho(&MVP)
-		MVP.Translate(r.X1, r.Y1, 0, 1)
-		MVP.Scale(unit.CannonWidth, unit.CannonHeight, 1, 1)
-		glc.UniformMatrix4fv(game.P, MVP.Data())
-		glc.BindBuffer(gl.ARRAY_BUFFER, canBuf)
-		glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
-		glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
+		/*
+			var MVP goglmath.Matrix4
+			game.setOrtho(&MVP)
+			MVP.Translate(r.X1, r.Y1, 0, 1)
+			MVP.Scale(unit.CannonWidth, unit.CannonHeight, 1, 1)
+			glc.UniformMatrix4fv(game.P, MVP.Data())
+			glc.BindBuffer(gl.ARRAY_BUFFER, canBuf)
+			glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+			glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
+		*/
 
 		// life bar
 		lifeBarH := .02
@@ -138,7 +143,7 @@ func (game *gameState) paint() {
 
 	glc.DisableVertexAttribArray(game.position)
 
-	game.paintTex(glc, buttonWidth, buttonHeight, scoreTop, scoreBarHeight) // another shader
+	game.paintTex(glc, elap, buttonWidth, buttonHeight, scoreTop, scoreBarHeight, fieldTop, cannonBottom) // another shader
 }
 
 func (game *gameState) drawRect(rect unit.Rect, r, g, b, a float32, z float64) {
@@ -200,7 +205,7 @@ func (game *gameState) debugZ(glc gl.Context) {
 }
 */
 
-func (game *gameState) paintTex(glc gl.Context, buttonWidth, buttonHeight, scoreTop, scoreHeight float64) {
+func (game *gameState) paintTex(glc gl.Context, elap time.Duration, buttonWidth, buttonHeight, scoreTop, scoreHeight, fieldTop, cannonBottom float64) {
 
 	glc.Enable(gl.BLEND)
 	glc.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
@@ -209,9 +214,9 @@ func (game *gameState) paintTex(glc gl.Context, buttonWidth, buttonHeight, score
 	glc.EnableVertexAttribArray(game.texPosition)
 	glc.EnableVertexAttribArray(game.texTextureCoord)
 
-	unit := 0
-	glc.ActiveTexture(gl.TEXTURE0 + gl.Enum(unit))
-	glc.Uniform1i(game.texSampler, unit)
+	tunit := 0
+	glc.ActiveTexture(gl.TEXTURE0 + gl.Enum(tunit))
+	glc.Uniform1i(game.texSampler, tunit)
 
 	// draw button - fire
 
@@ -273,6 +278,29 @@ func (game *gameState) paintTex(glc gl.Context, buttonWidth, buttonHeight, score
 	scaleButtonTurn := buttonHeight // FIXME using square -- should use image aspect?
 	xTurn := game.minX + float64(turnIndex)*buttonWidth
 	game.drawImage(game.texButtonTurn, xTurn, game.minY, scaleButtonTurn, scaleButtonTurn)
+
+	// Cannons
+	for _, can := range game.cannons {
+
+		cannonX, _ := future.CannonX(can.CoordX, can.Speed, elap)
+
+		up := can.Team == game.playerTeam
+
+		r := unit.CannonBox(game.minX, game.maxX, float64(cannonX), fieldTop, cannonBottom, up)
+
+		/*
+			var MVP goglmath.Matrix4
+			game.setOrtho(&MVP)
+			MVP.Translate(r.X1, r.Y1, 0, 1)
+			MVP.Scale(unit.CannonWidth, unit.CannonHeight, 1, 1)
+			glc.UniformMatrix4fv(game.P, MVP.Data())
+			glc.BindBuffer(gl.ARRAY_BUFFER, canBuf)
+			glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
+			glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
+		*/
+
+		game.drawImage(game.ship, r.X1, r.Y1, unit.CannonWidth, unit.CannonHeight)
+	}
 
 	// font
 

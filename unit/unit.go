@@ -6,9 +6,9 @@ const (
 	// MissileHeight dimension
 	MissileHeight = .07
 	// CannonWidth dimension
-	CannonWidth = .1
+	CannonWidth = .15
 	// CannonHeight dimension
-	CannonHeight = .1
+	CannonHeight = .15
 )
 
 // Rect is bounding box.
