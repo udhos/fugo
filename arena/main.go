@@ -67,7 +67,11 @@ func main() {
 	}
 
 	cannon := "assets/ship.png"
-	w.cannonWidth, w.cannonHeight = loadCannonSize(cannon)
+	var errCanSz error
+	w.cannonWidth, w.cannonHeight, errCanSz = loadCannonSize(cannon)
+	if errCanSz != nil {
+		log.Printf("collision will NOT work: %v", errCanSz)
+	}
 	log.Printf("cannon: %s: %vx%v", cannon, w.cannonWidth, w.cannonHeight)
 
 	if errListen := listenAndServe(&w, addr); errListen != nil {
@@ -185,28 +189,30 @@ SERVICE:
 	}
 }
 
-func loadCannonSize(name string) (float64, float64) {
-	badSize := .2
+func loadCannonSize(name string) (float64, float64, error) {
+	bogus := image.Rect(0, 0, 10, 10)
+	w, h := unit.CannonSize(bogus)
+
 	f, errOpen := os.Open(name)
 	if errOpen != nil {
-		log.Printf("loadCannonSize: open: %s: %v", name, errOpen)
-		return badSize, badSize
+		return w, h, fmt.Errorf("loadCannonSize: open: %s: %v", name, errOpen)
 	}
 	defer f.Close()
 	img, _, errDec := image.Decode(f)
 	if errDec != nil {
-		log.Printf("loadCannonSize: decode: %s: %v", name, errDec)
-		return badSize, badSize
+		return w, h, fmt.Errorf("loadCannonSize: decode: %s: %v", name, errDec)
 	}
 	i, ok := img.(*image.NRGBA)
 	if !ok {
-		log.Printf("loadCannonSize: %s: not NRGBA", name)
-		return badSize, badSize
+		return w, h, fmt.Errorf("loadCannonSize: %s: not NRGBA", name)
 	}
+
+	w, h = unit.CannonSize(i)
 	b := i.Bounds()
-	w, h := unit.CannonSize(i)
+
 	log.Printf("loadCannonSize: %s: %vx%v => %vx%v", name, b.Max.X, b.Max.Y, w, h)
-	return w, h
+
+	return w, h, nil
 }
 
 func updateCannon(p *player, now time.Time) {
