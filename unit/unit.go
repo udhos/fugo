@@ -71,10 +71,13 @@ func MissileBox(gameMinX, gameMaxX, x, y, fieldTop, cannonBottom, cannonWidth, c
 	}
 }
 
+// Box has a bounding image.Rectangle.
 type Box interface {
 	Bounds() image.Rectangle
 }
 
+// CannonSize returns the width,height of cannon bounding rectangle.
+// Bounding rectangle in pixel. Resulting width,height in NDC (-1.0 to 1.0).
 func CannonSize(b Box) (float64, float64) {
 	sb := b.Bounds()
 	sw := sb.Max.X - sb.Min.X

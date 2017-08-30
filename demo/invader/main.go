@@ -626,8 +626,8 @@ func (game *gameState) buttonEdge() float64 {
 }
 
 const (
-	coordsPerVertex       = 3
-	cannonVertexCount     = 3
+	coordsPerVertex = 3
+	//cannonVertexCount     = 3
 	squareVertexCount     = 6
 	squareWireVertexCount = 4
 )
