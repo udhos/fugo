@@ -95,7 +95,7 @@ func (game *gameState) paint() {
 
 		up := can.Team == game.playerTeam
 
-		r := unit.CannonBox(game.minX, game.maxX, float64(cannonX), fieldTop, cannonBottom, up)
+		r := unit.CannonBox(game.minX, game.maxX, float64(cannonX), fieldTop, cannonBottom, game.cannonWidth, game.cannonHeight, up)
 
 		/*
 			var MVP goglmath.Matrix4
@@ -111,7 +111,7 @@ func (game *gameState) paint() {
 		// life bar
 		lifeBarH := .02
 		lifeR := r
-		lifeR.X2 = lifeR.X1 + unit.CannonWidth*float64(can.Life)
+		lifeR.X2 = lifeR.X1 + game.cannonWidth*float64(can.Life)
 		lifeR2 := r
 		lifeR2.X1 = lifeR.X2
 		if up {
@@ -121,10 +121,10 @@ func (game *gameState) paint() {
 			lifeR.Y1 = lifeR.Y2 - lifeBarH
 			lifeR2.Y1 = lifeR.Y1
 		}
-		game.drawRect(lifeR, .5, .5, .8, 1, .05)
+		game.drawRect(lifeR, .4, .7, .9, 1, .05)
 		game.drawRect(lifeR2, .9, .5, .5, 1, .05)
 
-		//game.drawWireRect(r, 1, 1, 1, 1, .1) // debug-only
+		game.drawWireRect(r, 1, 1, 1, 1, .1) // debug-only
 	}
 
 	// Missiles
@@ -132,7 +132,7 @@ func (game *gameState) paint() {
 		up := miss.Team == game.playerTeam
 		y := float64(future.MissileY(miss.CoordY, miss.Speed, elap))
 
-		r := unit.MissileBox(game.minX, game.maxX, float64(miss.CoordX), y, fieldTop, cannonBottom, up)
+		r := unit.MissileBox(game.minX, game.maxX, float64(miss.CoordX), y, fieldTop, cannonBottom, game.cannonWidth, game.cannonHeight, up)
 
 		game.drawRect(r, .9, .9, .4, 1, 0)
 
@@ -286,7 +286,7 @@ func (game *gameState) paintTex(glc gl.Context, elap time.Duration, buttonWidth,
 
 		up := can.Team == game.playerTeam
 
-		r := unit.CannonBox(game.minX, game.maxX, float64(cannonX), fieldTop, cannonBottom, up)
+		r := unit.CannonBox(game.minX, game.maxX, float64(cannonX), fieldTop, cannonBottom, game.cannonWidth, game.cannonHeight, up)
 
 		/*
 			var MVP goglmath.Matrix4
@@ -299,7 +299,7 @@ func (game *gameState) paintTex(glc gl.Context, elap time.Duration, buttonWidth,
 			glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
 		*/
 
-		game.drawImage(game.ship, r.X1, r.Y1, unit.CannonWidth, unit.CannonHeight)
+		game.drawImage(game.ship, r.X1, r.Y1, game.cannonWidth, game.cannonHeight)
 	}
 
 	// font

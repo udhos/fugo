@@ -33,6 +33,7 @@ import (
 	"github.com/udhos/fugo/future"
 	"github.com/udhos/fugo/msg"
 	"github.com/udhos/fugo/trace"
+	"github.com/udhos/fugo/unit"
 )
 
 type gameState struct {
@@ -63,6 +64,9 @@ type gameState struct {
 	texButtonFire gl.Texture
 	texButtonTurn gl.Texture
 	ship          gl.Texture
+
+	cannonWidth  float64
+	cannonHeight float64
 
 	atlas      *fontAtlas
 	t1         *fontText
@@ -485,18 +489,35 @@ func (game *gameState) start(glc gl.Context) {
 	*/
 
 	var errLoad error
-	game.texButtonFire, errLoad = loadTexture(glc, "icon-missile.png", true)
+	game.texButtonFire, _, errLoad = loadTexture(glc, "icon-missile.png", true)
 	if errLoad != nil {
 		log.Printf("start: texture load: %v", errLoad)
 	}
-	game.texButtonTurn, errLoad = loadTexture(glc, "icon-right-left.png", true)
+	game.texButtonTurn, _, errLoad = loadTexture(glc, "icon-right-left.png", true)
 	if errLoad != nil {
 		log.Printf("start: texture load: %v", errLoad)
 	}
-	game.ship, errLoad = loadTexture(glc, "ship.png", true)
+	var shipImg *image.NRGBA
+	game.ship, shipImg, errLoad = loadTexture(glc, "ship.png", true)
 	if errLoad != nil {
 		log.Printf("start: texture load: %v", errLoad)
 	}
+
+	/*
+		sb := shipImg.Bounds()
+		sw := sb.Max.X - sb.Min.X
+		sh := sb.Max.Y - sb.Min.Y
+		var sdmax int
+		if sw < sh {
+		   sdmax = sh
+		} else {
+		  sdmax = sw
+		}
+		cannonSize := .4
+		game.cannonWidth = cannonSize * float64(sw) / float64(sdmax)
+		game.cannonHeight = cannonSize * float64(sh) / float64(sdmax)
+	*/
+	game.cannonWidth, game.cannonHeight = unit.CannonSize(shipImg)
 
 	game.bufSquareElemData = glc.CreateBuffer()
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)

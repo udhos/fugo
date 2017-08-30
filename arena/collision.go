@@ -37,7 +37,7 @@ NEXT_MISSILE:
 		m := w.missileList[i]
 		mY := float64(future.MissileY(m.CoordY, m.Speed, now.Sub(m.Start)))
 		mUp := m.Team == 0
-		mr := unit.MissileBox(left, right, float64(m.CoordX), mY, fieldTop, cannonBottom, mUp)
+		mr := unit.MissileBox(left, right, float64(m.CoordX), mY, fieldTop, cannonBottom, w.cannonWidth, w.cannonHeight, mUp)
 
 		for _, p := range w.playerTab {
 			if p.cannonLife <= 0 {
@@ -48,7 +48,7 @@ NEXT_MISSILE:
 			}
 			cX, _ := future.CannonX(p.cannonCoordX, p.cannonSpeed, now.Sub(p.cannonStart))
 			cUp := p.team == 0
-			cr := unit.CannonBox(left, right, float64(cX), fieldTop, cannonBottom, cUp)
+			cr := unit.CannonBox(left, right, float64(cX), fieldTop, cannonBottom, w.cannonWidth, w.cannonHeight, cUp)
 			if intersect(mr, cr) {
 				//log.Printf("collision: %v %v", m, p)
 				removeMissile(w, i)

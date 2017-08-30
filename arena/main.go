@@ -4,12 +4,16 @@ import (
 	"encoding/gob"
 	"flag"
 	"fmt"
+	"image"
+	_ "image/png" // The _ means to import a package purely for its initialization side effects.
 	"log"
 	"net"
+	"os"
 	"time"
 
 	"github.com/udhos/fugo/future"
 	"github.com/udhos/fugo/msg"
+	"github.com/udhos/fugo/unit"
 )
 
 type world struct {
@@ -20,6 +24,8 @@ type world struct {
 	updateInterval time.Duration
 	missileList    []*msg.Missile
 	teams          [2]team
+	cannonWidth    float64
+	cannonHeight   float64
 }
 
 type team struct {
@@ -59,6 +65,11 @@ func main() {
 		updateInterval: 1000 * time.Millisecond,
 		input:          make(chan inputMsg),
 	}
+
+	cannon := "assets/ship.png"
+	w.cannonWidth, w.cannonHeight = loadCannonSize(cannon)
+	log.Printf("cannon: %s: %vx%v", cannon, w.cannonWidth, w.cannonHeight)
+
 	if errListen := listenAndServe(&w, addr); errListen != nil {
 		log.Printf("main: listen: %v", errListen)
 		return
@@ -172,6 +183,30 @@ SERVICE:
 			}
 		}
 	}
+}
+
+func loadCannonSize(name string) (float64, float64) {
+	badSize := .2
+	f, errOpen := os.Open(name)
+	if errOpen != nil {
+		log.Printf("loadCannonSize: open: %s: %v", name, errOpen)
+		return badSize, badSize
+	}
+	defer f.Close()
+	img, _, errDec := image.Decode(f)
+	if errDec != nil {
+		log.Printf("loadCannonSize: decode: %s: %v", name, errDec)
+		return badSize, badSize
+	}
+	i, ok := img.(*image.NRGBA)
+	if !ok {
+		log.Printf("loadCannonSize: %s: not NRGBA", name)
+		return badSize, badSize
+	}
+	b := i.Bounds()
+	w, h := unit.CannonSize(i)
+	log.Printf("loadCannonSize: %s: %vx%v => %vx%v", name, b.Max.X, b.Max.Y, w, h)
+	return w, h
 }
 
 func updateCannon(p *player, now time.Time) {

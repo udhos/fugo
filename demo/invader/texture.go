@@ -15,27 +15,29 @@ import (
 
 var nilTexture = gl.Texture{Value: 0xFFFFFFFF}
 
-func loadTexture(glc gl.Context, name string, yflip bool) (gl.Texture, error) {
+func loadTexture(glc gl.Context, name string, yflip bool) (gl.Texture, *image.NRGBA, error) {
 
 	imgFile := name
 	imgIn, errImg := asset.Open(imgFile)
 	if errImg != nil {
-		return nilTexture, fmt.Errorf("open texture image: %s: %v", imgFile, errImg)
+		return nilTexture, nil, fmt.Errorf("open texture image: %s: %v", imgFile, errImg)
 	}
 	img, _, errDec := image.Decode(imgIn)
 	if errDec != nil {
-		return nilTexture, fmt.Errorf("decode texture image: %s: %v", imgFile, errDec)
+		return nilTexture, nil, fmt.Errorf("decode texture image: %s: %v", imgFile, errDec)
 	}
 	if img == nil {
-		return nilTexture, fmt.Errorf("decode texture image: %s: nil", imgFile)
+		return nilTexture, nil, fmt.Errorf("decode texture image: %s: nil", imgFile)
 	}
 	log.Printf("texture image loaded: %s", imgFile)
 	i, ok := img.(*image.NRGBA)
 	if !ok {
-		return nilTexture, fmt.Errorf("unexpected image type: %s: %v", imgFile, img.ColorModel())
+		return nilTexture, nil, fmt.Errorf("unexpected image type: %s: %v", imgFile, img.ColorModel())
 	}
 
-	return uploadImage(glc, name, i, yflip)
+	t, errUpload := uploadImage(glc, name, i, yflip)
+
+	return t, i, errUpload
 }
 
 func uploadImage(glc gl.Context, name string, i *image.NRGBA, yflip bool) (gl.Texture, error) {
