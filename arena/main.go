@@ -26,6 +26,8 @@ type world struct {
 	teams          [2]team
 	cannonWidth    float64
 	cannonHeight   float64
+	missileWidth   float64
+	missileHeight  float64
 }
 
 type team struct {
@@ -68,11 +70,19 @@ func main() {
 
 	cannon := "assets/ship.png"
 	var errCanSz error
-	w.cannonWidth, w.cannonHeight, errCanSz = loadCannonSize(cannon)
+	w.cannonWidth, w.cannonHeight, errCanSz = loadSize(cannon, unit.ScaleCannon)
 	if errCanSz != nil {
 		log.Printf("collision will NOT work: %v", errCanSz)
 	}
 	log.Printf("cannon: %s: %vx%v", cannon, w.cannonWidth, w.cannonHeight)
+
+	missile := "assets/ship.png"
+	var errMisSz error
+	w.missileWidth, w.missileHeight, errMisSz = loadSize(missile, unit.ScaleMissile)
+	if errMisSz != nil {
+		log.Printf("collision will NOT work: %v", errMisSz)
+	}
+	log.Printf("missile: %s: %vx%v", missile, w.missileWidth, w.missileHeight)
 
 	if errListen := listenAndServe(&w, addr); errListen != nil {
 		log.Printf("main: listen: %v", errListen)
@@ -189,28 +199,28 @@ SERVICE:
 	}
 }
 
-func loadCannonSize(name string) (float64, float64, error) {
+func loadSize(name string, scale float64) (float64, float64, error) {
 	bogus := image.Rect(0, 0, 10, 10)
-	w, h := unit.CannonSize(bogus)
+	w, h := unit.UnitSize(bogus, scale)
 
 	f, errOpen := os.Open(name)
 	if errOpen != nil {
-		return w, h, fmt.Errorf("loadCannonSize: open: %s: %v", name, errOpen)
+		return w, h, fmt.Errorf("loadSize: open: %s: %v", name, errOpen)
 	}
 	defer f.Close()
 	img, _, errDec := image.Decode(f)
 	if errDec != nil {
-		return w, h, fmt.Errorf("loadCannonSize: decode: %s: %v", name, errDec)
+		return w, h, fmt.Errorf("loadSize: decode: %s: %v", name, errDec)
 	}
 	i, ok := img.(*image.NRGBA)
 	if !ok {
-		return w, h, fmt.Errorf("loadCannonSize: %s: not NRGBA", name)
+		return w, h, fmt.Errorf("loadSize: %s: not NRGBA", name)
 	}
 
-	w, h = unit.CannonSize(i)
+	w, h = unit.UnitSize(i, scale)
 	b := i.Bounds()
 
-	log.Printf("loadCannonSize: %s: %vx%v => %vx%v", name, b.Max.X, b.Max.Y, w, h)
+	log.Printf("loadSize: %s: %vx%v => %vx%v", name, b.Max.X, b.Max.Y, w, h)
 
 	return w, h, nil
 }

@@ -5,14 +5,10 @@ import (
 )
 
 const (
-	// MissileWidth dimension
-	MissileWidth = .03
-	// MissileHeight dimension
-	MissileHeight = .07
-	// CannonWidth dimension
-	//CannonWidth = .15
-	// CannonHeight dimension
-	//CannonHeight = .15
+	// ScaleCannon cannon scale
+	ScaleCannon = .4
+	// ScaleMissile missile scale
+	ScaleMissile = .08
 )
 
 // Rect is bounding box.
@@ -47,15 +43,15 @@ func CannonBox(gameMinX, gameMaxX, x, fieldTop, cannonBottom, cannonWidth, canno
 }
 
 // MissileBox returns bounding box.
-func MissileBox(gameMinX, gameMaxX, x, y, fieldTop, cannonBottom, cannonWidth, cannonHeight float64, up bool) Rect {
-	minX := gameMinX + .5*cannonWidth - .5*MissileWidth
-	maxX := gameMaxX - .5*cannonWidth - .5*MissileWidth
+func MissileBox(gameMinX, gameMaxX, x, y, fieldTop, cannonBottom, cannonWidth, cannonHeight, missileWidth, missileHeight float64, up bool) Rect {
+	minX := gameMinX + .5*cannonWidth - .5*missileWidth
+	maxX := gameMaxX - .5*cannonWidth - .5*missileWidth
 	fx := x*(maxX-minX) + minX
 	var fy float64
 	if up {
 		// upward
 		minY := cannonBottom + cannonHeight
-		maxY := fieldTop - MissileHeight
+		maxY := fieldTop - missileHeight
 		fy = y*(maxY-minY) + minY
 	} else {
 		// downward
@@ -66,8 +62,8 @@ func MissileBox(gameMinX, gameMaxX, x, y, fieldTop, cannonBottom, cannonWidth, c
 	return Rect{
 		X1: fx,
 		Y1: fy,
-		X2: fx + MissileWidth,
-		Y2: fy + MissileHeight,
+		X2: fx + missileWidth,
+		Y2: fy + missileHeight,
 	}
 }
 
@@ -76,9 +72,21 @@ type Box interface {
 	Bounds() image.Rectangle
 }
 
-// CannonSize returns the width,height of cannon bounding rectangle.
-// Bounding rectangle in pixel. Resulting width,height in NDC (-1.0 to 1.0).
+/*
+// CannonSize returns the width,height of bounding rectangle.
 func CannonSize(b Box) (float64, float64) {
+     return unitSize(.4)
+}
+
+// MissileSize returns the width,height of bounding rectangle.
+func MissileSize(b Box) (float64, float64) {
+     return unitSize(.05)
+}
+*/
+
+// UnitSize returns the width,height of bounding rectangle.
+// Bounding rectangle in pixel. Resulting width,height in NDC (-1.0 to 1.0).
+func UnitSize(b Box, scale float64) (float64, float64) {
 	sb := b.Bounds()
 	sw := sb.Max.X - sb.Min.X
 	sh := sb.Max.Y - sb.Min.Y
@@ -88,8 +96,7 @@ func CannonSize(b Box) (float64, float64) {
 	} else {
 		sdmax = sw
 	}
-	cannonSize := .4
-	cannonWidth := cannonSize * float64(sw) / float64(sdmax)
-	cannonHeight := cannonSize * float64(sh) / float64(sdmax)
-	return cannonWidth, cannonHeight
+	width := scale * float64(sw) / float64(sdmax)
+	height := scale * float64(sh) / float64(sdmax)
+	return width, height
 }

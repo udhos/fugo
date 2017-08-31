@@ -132,11 +132,11 @@ func (game *gameState) paint() {
 		up := miss.Team == game.playerTeam
 		y := float64(future.MissileY(miss.CoordY, miss.Speed, elap))
 
-		r := unit.MissileBox(game.minX, game.maxX, float64(miss.CoordX), y, fieldTop, cannonBottom, game.cannonWidth, game.cannonHeight, up)
+		r := unit.MissileBox(game.minX, game.maxX, float64(miss.CoordX), y, fieldTop, cannonBottom, game.cannonWidth, game.cannonHeight, game.missileWidth, game.missileHeight, up)
 
-		game.drawRect(r, .9, .9, .4, 1, 0)
+		//game.drawRect(r, .9, .9, .4, 1, 0)
 
-		//game.drawWireRect(r, 1, 1, 1, 1, .1) // debug-only
+		game.drawWireRect(r, 1, 1, 1, 1, .1) // debug-only
 	}
 
 	//game.debugZ(glc)
@@ -300,6 +300,16 @@ func (game *gameState) paintTex(glc gl.Context, elap time.Duration, buttonWidth,
 		*/
 
 		game.drawImage(game.ship, r.X1, r.Y1, game.cannonWidth, game.cannonHeight)
+	}
+
+	// Missiles
+	for _, miss := range game.missiles {
+		up := miss.Team == game.playerTeam
+		y := float64(future.MissileY(miss.CoordY, miss.Speed, elap))
+
+		r := unit.MissileBox(game.minX, game.maxX, float64(miss.CoordX), y, fieldTop, cannonBottom, game.cannonWidth, game.cannonHeight, game.missileWidth, game.missileHeight, up)
+
+		game.drawImage(game.missile, r.X1, r.Y1, game.missileWidth, game.missileHeight)
 	}
 
 	// font

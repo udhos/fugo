@@ -37,7 +37,7 @@ NEXT_MISSILE:
 		m := w.missileList[i]
 		mY := float64(future.MissileY(m.CoordY, m.Speed, now.Sub(m.Start)))
 		mUp := m.Team == 0
-		mr := unit.MissileBox(left, right, float64(m.CoordX), mY, fieldTop, cannonBottom, w.cannonWidth, w.cannonHeight, mUp)
+		mr := unit.MissileBox(left, right, float64(m.CoordX), mY, fieldTop, cannonBottom, w.cannonWidth, w.cannonHeight, w.missileWidth, w.missileHeight, mUp)
 
 		for _, p := range w.playerTab {
 			if p.cannonLife <= 0 {

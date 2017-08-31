@@ -64,9 +64,12 @@ type gameState struct {
 	texButtonFire gl.Texture
 	texButtonTurn gl.Texture
 	ship          gl.Texture
+	missile       gl.Texture
 
-	cannonWidth  float64
-	cannonHeight float64
+	cannonWidth   float64
+	cannonHeight  float64
+	missileWidth  float64
+	missileHeight float64
 
 	atlas      *fontAtlas
 	t1         *fontText
@@ -517,7 +520,15 @@ func (game *gameState) start(glc gl.Context) {
 		game.cannonWidth = cannonSize * float64(sw) / float64(sdmax)
 		game.cannonHeight = cannonSize * float64(sh) / float64(sdmax)
 	*/
-	game.cannonWidth, game.cannonHeight = unit.CannonSize(shipImg)
+	game.cannonWidth, game.cannonHeight = unit.UnitSize(shipImg, unit.ScaleCannon)
+
+	var missImg *image.NRGBA
+	game.missile, missImg, errLoad = loadTexture(glc, "ship.png", true)
+	if errLoad != nil {
+		log.Printf("start: texture load: %v", errLoad)
+	}
+
+	game.missileWidth, game.missileHeight = unit.UnitSize(missImg, unit.ScaleMissile)
 
 	game.bufSquareElemData = glc.CreateBuffer()
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
@@ -599,6 +610,7 @@ func (game *gameState) stop() {
 	glc.DeleteTexture(game.texButtonFire)
 	glc.DeleteTexture(game.texButtonTurn)
 	glc.DeleteTexture(game.ship)
+	glc.DeleteTexture(game.missile)
 	glc.DeleteBuffer(game.bufSquareElemIndex)
 	glc.DeleteBuffer(game.bufSquareElemData)
 
