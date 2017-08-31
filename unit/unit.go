@@ -56,7 +56,7 @@ func MissileBox(gameMinX, gameMaxX, x, y, fieldTop, cannonBottom, cannonWidth, c
 	} else {
 		// downward
 		minY := cannonBottom
-		maxY := fieldTop - cannonHeight
+		maxY := fieldTop - cannonHeight - missileHeight
 		fy = y*(minY-maxY) + maxY
 	}
 	return Rect{
