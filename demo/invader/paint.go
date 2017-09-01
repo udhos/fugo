@@ -255,7 +255,7 @@ func (game *gameState) paintTex(glc gl.Context, elap time.Duration, buttonWidth,
 	fireIndex := 0
 	scaleButtonFire := buttonHeight // FIXME using square -- should use image aspect?
 	xFire := game.minX + float64(fireIndex)*buttonWidth
-	game.drawImage(game.texButtonFire, xFire, game.minY, scaleButtonFire, scaleButtonFire)
+	game.drawImage(game.texButtonFire, xFire, game.minY, scaleButtonFire, scaleButtonFire, 0, 1, 0)
 
 	// draw button - turn
 
@@ -277,7 +277,7 @@ func (game *gameState) paintTex(glc gl.Context, elap time.Duration, buttonWidth,
 	turnIndex := 1
 	scaleButtonTurn := buttonHeight // FIXME using square -- should use image aspect?
 	xTurn := game.minX + float64(turnIndex)*buttonWidth
-	game.drawImage(game.texButtonTurn, xTurn, game.minY, scaleButtonTurn, scaleButtonTurn)
+	game.drawImage(game.texButtonTurn, xTurn, game.minY, scaleButtonTurn, scaleButtonTurn, 0, 1, 0)
 
 	// Cannons
 	for _, can := range game.cannons {
@@ -299,7 +299,17 @@ func (game *gameState) paintTex(glc gl.Context, elap time.Duration, buttonWidth,
 			glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
 		*/
 
-		game.drawImage(game.ship, r.X1, r.Y1, game.cannonWidth, game.cannonHeight)
+		var upX, upY, upZ float64
+		if up {
+			upX = 0
+			upY = 1
+			upZ = 0
+		} else {
+			upX = 0
+			upY = -1
+			upZ = 0
+		}
+		game.drawImage(game.ship, r.X1, r.Y1, game.cannonWidth, game.cannonHeight, upX, upY, upZ)
 	}
 
 	// Missiles
@@ -309,7 +319,17 @@ func (game *gameState) paintTex(glc gl.Context, elap time.Duration, buttonWidth,
 
 		r := unit.MissileBox(game.minX, game.maxX, float64(miss.CoordX), y, fieldTop, cannonBottom, game.cannonWidth, game.cannonHeight, game.missileWidth, game.missileHeight, up)
 
-		game.drawImage(game.missile, r.X1, r.Y1, game.missileWidth, game.missileHeight)
+		var upX, upY, upZ float64
+		if up {
+			upX = 0
+			upY = 1
+			upZ = 0
+		} else {
+			upX = 0
+			upY = -1
+			upZ = 0
+		}
+		game.drawImage(game.missile, r.X1, r.Y1, game.missileWidth, game.missileHeight, upX, upY, upZ)
 	}
 
 	// font
@@ -347,7 +367,7 @@ func (game *gameState) paintTex(glc gl.Context, elap time.Duration, buttonWidth,
 	glc.Disable(gl.BLEND)
 }
 
-func (game *gameState) drawImage(tex gl.Texture, x, y, width, height float64) {
+func (game *gameState) drawImage(tex gl.Texture, x, y, width, height, upX, upY, upZ float64) {
 	glc := game.gl // shortcut
 
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
@@ -369,9 +389,16 @@ func (game *gameState) drawImage(tex gl.Texture, x, y, width, height float64) {
 	glc.VertexAttribPointer(game.texTextureCoord, itemsTexture, gl.FLOAT, false, strideSize, offsetTexture)
 
 	var MVP goglmath.Matrix4
+	var R goglmath.Matrix4
+	goglmath.SetModelMatrix(&R, 0, 0, -1, upX, upY, upZ, 0, 0, 0)
+
 	game.setOrtho(&MVP)
-	MVP.Translate(x, y, 0, 1)
-	MVP.Scale(width, height, 1, 1)
+	MVP.Translate(x, y, 0, 1)      // MVP = T
+	MVP.Scale(width, height, 1, 1) // MVP = T*S
+	MVP.Translate(.5, .5, 0, 1)    // translate center back
+	MVP.Multiply(&R)               // MVP = T*S*R
+	MVP.Translate(-.5, -.5, 0, 1)  // translate center to origin
+
 	glc.UniformMatrix4fv(game.texMVP, MVP.Data())
 
 	glc.BindTexture(gl.TEXTURE_2D, tex)
