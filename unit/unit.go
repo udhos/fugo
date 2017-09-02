@@ -6,9 +6,9 @@ import (
 
 const (
 	// ScaleCannon cannon scale
-	ScaleCannon = .4
+	ScaleCannon = .2
 	// ScaleMissile missile scale
-	ScaleMissile = .08
+	ScaleMissile = .15
 )
 
 // Rect is bounding box.

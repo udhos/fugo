@@ -28,7 +28,8 @@ func (game *gameState) paint() {
 
 	screenWidth := game.maxX - game.minX
 	screenHeight := game.maxY - game.minY
-	statusBarHeight := .05
+	fuelHeight := .05
+	statusBarHeight := .07
 	scoreTop := game.maxY - statusBarHeight
 	scoreBarHeight := .06
 	fieldTop := scoreTop - scoreBarHeight
@@ -56,7 +57,6 @@ func (game *gameState) paint() {
 	}
 
 	fuelBottom := game.minY + buttonHeight
-	fuelHeight := .04 * screenHeight
 
 	// Wire rectangle around fuel bar
 	fuelBarR := unit.Rect{X1: game.minX, Y1: fuelBottom, X2: game.minX + screenWidth, Y2: fuelBottom + fuelHeight}
@@ -124,7 +124,9 @@ func (game *gameState) paint() {
 		game.drawRect(lifeR, .4, .7, .9, 1, .05)
 		game.drawRect(lifeR2, .9, .5, .5, 1, .05)
 
-		game.drawWireRect(r, 1, 1, 1, 1, .1) // debug-only
+		if game.debugBound {
+			game.drawWireRect(r, 1, 1, 1, 1, .1)
+		}
 	}
 
 	// Missiles
@@ -134,9 +136,9 @@ func (game *gameState) paint() {
 
 		r := unit.MissileBox(game.minX, game.maxX, float64(miss.CoordX), y, fieldTop, cannonBottom, game.cannonWidth, game.cannonHeight, game.missileWidth, game.missileHeight, up)
 
-		//game.drawRect(r, .9, .9, .4, 1, 0)
-
-		game.drawWireRect(r, 1, 1, 1, 1, .1) // debug-only
+		if game.debugBound {
+			game.drawWireRect(r, 1, 1, 1, 1, .1)
+		}
 	}
 
 	//game.debugZ(glc)

@@ -76,7 +76,7 @@ func main() {
 	}
 	log.Printf("cannon: %s: %vx%v", cannon, w.cannonWidth, w.cannonHeight)
 
-	missile := "assets/ship.png"
+	missile := "assets/rocket.png"
 	var errMisSz error
 	w.missileWidth, w.missileHeight, errMisSz = loadSize(missile, unit.ScaleMissile)
 	if errMisSz != nil {

@@ -70,6 +70,7 @@ type gameState struct {
 	cannonHeight  float64
 	missileWidth  float64
 	missileHeight float64
+	debugBound    bool
 
 	atlas      *fontAtlas
 	t1         *fontText
@@ -100,6 +101,7 @@ func newGame() (*gameState, error) {
 		maxY:     1,
 		missiles: map[int]*msg.Missile{},
 		cannons:  map[int]*msg.Cannon{},
+		//debugBound: true,
 	}
 
 	vert, errVert := loadFull("shader.vert")
@@ -523,7 +525,7 @@ func (game *gameState) start(glc gl.Context) {
 	game.cannonWidth, game.cannonHeight = unit.UnitSize(shipImg, unit.ScaleCannon)
 
 	var missImg *image.NRGBA
-	game.missile, missImg, errLoad = loadTexture(glc, "ship.png", true)
+	game.missile, missImg, errLoad = loadTexture(glc, "rocket.png", true)
 	if errLoad != nil {
 		log.Printf("start: texture load: %v", errLoad)
 	}
