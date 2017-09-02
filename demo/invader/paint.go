@@ -389,15 +389,12 @@ func (game *gameState) drawImage(tex gl.Texture, x, y, width, height, upX, upY, 
 	glc.VertexAttribPointer(game.texTextureCoord, itemsTexture, gl.FLOAT, false, strideSize, offsetTexture)
 
 	var MVP goglmath.Matrix4
-	var R goglmath.Matrix4
-	goglmath.SetModelMatrix(&R, 0, 0, -1, upX, upY, upZ, 0, 0, 0)
-
 	game.setOrtho(&MVP)
-	MVP.Translate(x, y, 0, 1)      // MVP = T
-	MVP.Scale(width, height, 1, 1) // MVP = T*S
-	MVP.Translate(.5, .5, 0, 1)    // translate center back
-	MVP.Multiply(&R)               // MVP = T*S*R
-	MVP.Translate(-.5, -.5, 0, 1)  // translate center to origin
+	MVP.Translate(x, y, 0, 1)           // MVP = T
+	MVP.Scale(width, height, 1, 1)      // MVP = T*S
+	MVP.Translate(.5, .5, 0, 1)         // translate center back
+	MVP.Rotate(0, 0, -1, upX, upY, upZ) // MVP = T*S*R
+	MVP.Translate(-.5, -.5, 0, 1)       // translate center to origin
 
 	glc.UniformMatrix4fv(game.texMVP, MVP.Data())
 
