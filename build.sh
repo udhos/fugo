@@ -75,6 +75,7 @@ get github.com/golang/lint/golint
 get github.com/udhos/pixfont
 get github.com/udhos/goglmath
 get golang.org/x/net/ipv4
+get github.com/faiface/beep
 
 check future
 check msg

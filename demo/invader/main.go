@@ -30,6 +30,10 @@ import (
 	"golang.org/x/mobile/exp/gl/glutil"
 	"golang.org/x/mobile/gl"
 
+	"github.com/faiface/beep"
+	"github.com/faiface/beep/speaker"
+	"github.com/faiface/beep/wav"
+
 	"github.com/udhos/fugo/future"
 	"github.com/udhos/fugo/msg"
 	"github.com/udhos/fugo/trace"
@@ -93,6 +97,34 @@ type gameState struct {
 	tracer                 *trace.Trace
 }
 
+func loadSound(name string) error {
+	f, errSndLaser := asset.Open(name)
+	if errSndLaser != nil {
+		return errSndLaser
+	}
+
+	s, format, errDec := wav.Decode(f)
+	if errDec != nil {
+		return errDec
+	}
+
+	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+
+	done := make(chan struct{})
+
+	log.Printf("loadSound: playing")
+
+	speaker.Play(beep.Seq(s, beep.Callback(func() {
+		close(done)
+	})))
+
+	<-done
+
+	log.Printf("loadSound: done")
+
+	return nil
+}
+
 func newGame() (*gameState, error) {
 	game := &gameState{
 		minX:     -1,
@@ -102,6 +134,12 @@ func newGame() (*gameState, error) {
 		missiles: map[int]*msg.Missile{},
 		cannons:  map[int]*msg.Cannon{},
 		//debugBound: true,
+	}
+
+	sndLaser := "Electric-wash-01.wav"
+	errSndLaser := loadSound(sndLaser)
+	if errSndLaser != nil {
+		log.Printf("laser sound: %v", errSndLaser)
 	}
 
 	vert, errVert := loadFull("shader.vert")
