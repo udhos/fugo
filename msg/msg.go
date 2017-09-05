@@ -12,6 +12,7 @@ type Update struct {
 	Cannons       []*Cannon
 	Team          int // notify player about his team
 	Scores        [2]int
+	FireSound     bool
 }
 
 const (

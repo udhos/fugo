@@ -70,6 +70,8 @@ type gameState struct {
 	ship          gl.Texture
 	missile       gl.Texture
 
+	streamLaser beep.StreamSeekCloser
+
 	cannonWidth   float64
 	cannonHeight  float64
 	missileWidth  float64
@@ -97,32 +99,39 @@ type gameState struct {
 	tracer                 *trace.Trace
 }
 
-func loadSound(name string) error {
+func playLaser(game *gameState) {
+	game.streamLaser.Seek(0)
+	speaker.Play(beep.Seq(game.streamLaser))
+}
+
+func loadSound(name string) (beep.StreamSeekCloser, error) {
 	f, errSndLaser := asset.Open(name)
 	if errSndLaser != nil {
-		return errSndLaser
+		return nil, errSndLaser
 	}
 
 	s, format, errDec := wav.Decode(f)
 	if errDec != nil {
-		return errDec
+		return nil, errDec
 	}
 
 	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
 
-	done := make(chan struct{})
+	/*
+		done := make(chan struct{})
 
-	log.Printf("loadSound: playing")
+		log.Printf("loadSound: playing")
 
-	speaker.Play(beep.Seq(s, beep.Callback(func() {
-		close(done)
-	})))
+		speaker.Play(beep.Seq(s, beep.Callback(func() {
+			close(done)
+		})))
 
-	<-done
+		<-done
 
-	log.Printf("loadSound: done")
+		log.Printf("loadSound: done")
+	*/
 
-	return nil
+	return s, nil
 }
 
 func newGame() (*gameState, error) {
@@ -136,8 +145,10 @@ func newGame() (*gameState, error) {
 		//debugBound: true,
 	}
 
-	sndLaser := "Electric-wash-01.wav"
-	errSndLaser := loadSound(sndLaser)
+	//sndLaser := "Electric-wash-01.wav"
+	sndLaser := "95933__robinhood76__01665-thin-laser-blast.wav"
+	var errSndLaser error
+	game.streamLaser, errSndLaser = loadSound(sndLaser)
 	if errSndLaser != nil {
 		log.Printf("laser sound: %v", errSndLaser)
 	}
@@ -394,6 +405,10 @@ func main() {
 				//log.Printf("score: [%s] [%s]", our, their)
 				game.scoreOur.write(our)
 				game.scoreTheir.write(their)
+
+				if t.FireSound {
+					playLaser(game)
+				}
 			}
 		}
 

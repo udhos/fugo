@@ -151,7 +151,7 @@ SERVICE:
 					//p.cannonCoordX, p.cannonSpeed = future.CannonX(p.cannonCoordX, p.cannonSpeed, time.Since(p.cannonStart))
 					updateCannon(p, time.Now())
 					p.cannonSpeed = -p.cannonSpeed
-					updateWorld(&w)
+					updateWorld(&w, false)
 					continue SERVICE
 				}
 
@@ -184,16 +184,16 @@ SERVICE:
 
 				log.Printf("input fire - fuel was=%v is=%v missiles=%d", fuel, playerFuel(i.player), len(w.missileList))
 
-				updateWorld(&w)
+				updateWorld(&w, true)
 			}
 
 		case <-tickerUpdate.C:
 			//log.Printf("tick: %v", t)
 
-			updateWorld(&w)
+			updateWorld(&w, false)
 		case <-tickerCollision.C:
 			if detectCollision(&w, time.Now()) {
-				updateWorld(&w)
+				updateWorld(&w, false)
 			}
 		}
 	}
@@ -238,7 +238,7 @@ func removeMissile(w *world, i int) {
 	w.missileList = w.missileList[:last]
 }
 
-func updateWorld(w *world) {
+func updateWorld(w *world, fire bool) {
 	now := time.Now()
 
 	for _, p := range w.playerTab {
@@ -256,7 +256,7 @@ func updateWorld(w *world) {
 	}
 
 	for _, p := range w.playerTab {
-		sendUpdatesToPlayer(w, p)
+		sendUpdatesToPlayer(w, p, fire)
 	}
 }
 
@@ -268,13 +268,14 @@ func playerFuelSet(p *player, now time.Time, fuel float32) {
 	p.fuelStart = now.Add(-time.Duration(float32(time.Second) * fuel / future.FuelRechargeRate))
 }
 
-func sendUpdatesToPlayer(w *world, p *player) {
+func sendUpdatesToPlayer(w *world, p *player, fire bool) {
 	update := msg.Update{
 		Fuel:          playerFuel(p),
 		Interval:      w.updateInterval,
 		WorldMissiles: w.missileList,
 		Team:          p.team,
 		Scores:        [2]int{w.teams[0].score, w.teams[1].score},
+		FireSound:     fire,
 	}
 
 	for _, p1 := range w.playerTab {
