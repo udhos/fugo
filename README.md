@@ -67,7 +67,13 @@ On Ubuntu you will need these:
 
     sudo apt-get install libegl1-mesa-dev libgles2-mesa-dev libx11-dev
 
-5\. Get fugo
+5\. Install alsa sound dev libs
+
+On Ubuntu you will need this:
+
+    sudo apt install libasound2-dev
+
+6\. Get fugo
 
 Recipe:
 
@@ -75,7 +81,7 @@ Recipe:
 
 ## Building the INVADER application
 
-6\. Build for desktop
+7\. Build for desktop
 
 Recipe:
 
@@ -88,9 +94,9 @@ Hint: You can test the desktop version by running 'invader':
 The parameter 'slow' sets a very low frame rate, useful for test/debugging.
 If you want smooth rendering, remove the parameter 'slow'.
 
-The subshell is used to temporarily enter the demo/invader dir in order to load assets from demo/invader/assets).
+The subshell is used to temporarily enter the demo/invader dir in order to load assets from demo/invader/assets.
 
-7\. Build for Android
+8\. Build for Android
 
 Recipe:
 
@@ -100,7 +106,7 @@ Hint: Use 'gomobile build -x' to see what the build is doing.
 
     $ gomobile build -x github.com/udhos/fugo/demo/invader
 
-8\. Push into Android device
+9\. Push into Android device
 
 Recipe:
 
@@ -108,7 +114,7 @@ Recipe:
 
 ## Building the ARENA server
 
-9\. Build the server
+10\. Build the server
 
 Recipe:
 
@@ -116,7 +122,9 @@ Recipe:
 
 10\. Run the server
 
-    $ arena
+    $ (cd demo/invader && arena)
+
+The arena server needs to load image information from demo/invader/assets.
 
 ## How does the INVADER application locate the ARENA server?
 
