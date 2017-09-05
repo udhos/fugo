@@ -114,8 +114,8 @@ SERVICE:
 
 			playerFuelSet(p, time.Now(), 5) // reset fuel to 50%
 			p.cannonStart = p.fuelStart
-			p.cannonSpeed = float32(.1 / 1.0) // 10% every 1 second
-			p.cannonCoordX = .5               // 50%
+			p.cannonSpeed = float32(.15) // 15%
+			p.cannonCoordX = .5          // 50%
 			p.cannonID = cannonID
 			p.cannonLife = 1 // 100%
 			cannonID++

@@ -29,7 +29,7 @@ func (game *gameState) paint() {
 	screenWidth := game.maxX - game.minX
 	screenHeight := game.maxY - game.minY
 	fuelHeight := .05
-	statusBarHeight := .07
+	statusBarHeight := .14
 	scoreTop := game.maxY - statusBarHeight
 	scoreBarHeight := .06
 	fieldTop := scoreTop - scoreBarHeight
