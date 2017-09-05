@@ -76,6 +76,8 @@ get github.com/udhos/pixfont
 get github.com/udhos/goglmath
 get golang.org/x/net/ipv4
 get github.com/faiface/beep
+get github.com/hajimehoshi/oto
+get github.com/pkg/errors
 
 check future
 check msg
