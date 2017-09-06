@@ -142,7 +142,6 @@ func newGame() (*gameState, error) {
 		maxY:     1,
 		missiles: map[int]*msg.Missile{},
 		cannons:  map[int]*msg.Cannon{},
-		//debugBound: true,
 	}
 
 	//sndLaser := "Electric-wash-01.wav"
@@ -153,33 +152,57 @@ func newGame() (*gameState, error) {
 		log.Printf("laser sound: %v", errSndLaser)
 	}
 
-	vert, errVert := loadFull("shader.vert")
-	if errVert != nil {
+	/*
+		vert, errVert := loadFull("shader.vert")
+		if errVert != nil {
+			log.Printf("load vertex shader: %v", errVert)
+			return nil, errVert
+		}
+		game.shaderVert = string(vert)
+	*/
+	if errVert := flagStr(&game.shaderVert, "shader.vert"); errVert != nil {
 		log.Printf("load vertex shader: %v", errVert)
 		return nil, errVert
 	}
-	game.shaderVert = string(vert)
 
-	frag, errFrag := loadFull("shader.frag")
-	if errFrag != nil {
+	/*
+		frag, errFrag := loadFull("shader.frag")
+		if errFrag != nil {
+			log.Printf("load fragment shader: %v", errFrag)
+			return nil, errFrag
+		}
+		game.shaderFrag = string(frag)
+	*/
+	if errFrag := flagStr(&game.shaderFrag, "shader.frag"); errFrag != nil {
 		log.Printf("load fragment shader: %v", errFrag)
 		return nil, errFrag
 	}
-	game.shaderFrag = string(frag)
 
-	texVert, errVert := loadFull("shader_tex.vert")
-	if errVert != nil {
-		log.Printf("load vertex shader: %v", errVert)
+	/*
+		texVert, errVert := loadFull("shader_tex.vert")
+		if errVert != nil {
+			log.Printf("load vertex shader: %v", errVert)
+			return nil, errVert
+		}
+		game.shaderTexVert = string(texVert)
+	*/
+	if errVert := flagStr(&game.shaderTexVert, "shader_tex.vert"); errVert != nil {
+		log.Printf("load vertex tex shader: %v", errVert)
 		return nil, errVert
 	}
-	game.shaderTexVert = string(texVert)
 
-	texFrag, errFrag := loadFull("shader_tex.frag")
-	if errFrag != nil {
-		log.Printf("load fragment shader: %v", errFrag)
+	/*
+		texFrag, errFrag := loadFull("shader_tex.frag")
+		if errFrag != nil {
+			log.Printf("load fragment shader: %v", errFrag)
+			return nil, errFrag
+		}
+		game.shaderTexFrag = string(texFrag)
+	*/
+	if errFrag := flagStr(&game.shaderTexFrag, "shader_tex.frag"); errFrag != nil {
+		log.Printf("load fragment tex shader: %v", errFrag)
 		return nil, errFrag
 	}
-	game.shaderTexFrag = string(texFrag)
 
 	/*
 		imgFile := "awesomeface.png"
@@ -205,20 +228,28 @@ func newGame() (*gameState, error) {
 		}
 	*/
 
-	server, errServ := loadFull("server.txt")
-	if errServ != nil {
+	/*
+		server, errServ := loadFull("server.txt")
+		if errServ != nil {
+			log.Printf("load server: %v", errServ)
+			return nil, errServ
+		}
+		game.serverAddr = strings.TrimSpace(string(server))
+	*/
+	if errServ := flagStr(&game.serverAddr, "server.txt"); errServ != nil {
 		log.Printf("load server: %v", errServ)
 		return nil, errServ
 	}
-	game.serverAddr = strings.TrimSpace(string(server))
 
 	log.Printf("server: [%s]", game.serverAddr)
 
-	tracer, errTrace := loadFull("trace.txt")
+	//tracer, errTrace := loadFull("trace.txt")
+	var tracer string
+	errTrace := flagStr(&tracer, "trace.txt")
 	if errTrace != nil {
 		log.Printf("trace file: %v", errTrace)
 	} else {
-		tracer := strings.TrimSpace(string(tracer))
+		tracer = strings.TrimSpace(tracer)
 		log.Printf("tracer: [%s]", tracer)
 		game.tracer, errTrace = trace.New(tracer)
 		if errTrace != nil {
@@ -226,6 +257,8 @@ func newGame() (*gameState, error) {
 		}
 	}
 	log.Printf("tracer: %v", game.tracer)
+
+	flagBool(&game.debugBound, "box.txt")
 
 	game.tracef("trace, hello from invader app")
 
@@ -257,12 +290,15 @@ func main() {
 
 	slowPaint := len(os.Args) > 1
 
-	if !slowPaint {
-		_, errSlow := loadFull("slow.txt")
-		if errSlow == nil {
-			slowPaint = true
+	/*
+		if !slowPaint {
+			_, errSlow := loadFull("slow.txt")
+			if errSlow == nil {
+				slowPaint = true
+			}
 		}
-	}
+	*/
+	flagBool(&slowPaint, "slow.txt")
 
 	log.Printf("slowPaint: %v", slowPaint)
 
