@@ -82,31 +82,9 @@ func (game *gameState) paint() {
 
 		cannonX, _ := future.CannonX(can.CoordX, can.Speed, elap)
 
-		/*
-			var canBuf gl.Buffer
-			if up {
-				// upward
-				canBuf = game.bufCannon
-			} else {
-				// downward
-				canBuf = game.bufCannonDown
-			}
-		*/
-
 		up := can.Team == game.playerTeam
 
 		r := unit.CannonBox(game.minX, game.maxX, float64(cannonX), fieldTop, cannonBottom, game.cannonWidth, game.cannonHeight, up)
-
-		/*
-			var MVP goglmath.Matrix4
-			game.setOrtho(&MVP)
-			MVP.Translate(r.X1, r.Y1, 0, 1)
-			MVP.Scale(unit.CannonWidth, unit.CannonHeight, 1, 1)
-			glc.UniformMatrix4fv(game.P, MVP.Data())
-			glc.BindBuffer(gl.ARRAY_BUFFER, canBuf)
-			glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
-			glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
-		*/
 
 		// life bar
 		lifeBarH := .02
@@ -140,8 +118,6 @@ func (game *gameState) paint() {
 			game.drawWireRect(r, 1, 1, 1, 1, .1)
 		}
 	}
-
-	//game.debugZ(glc)
 
 	glc.DisableVertexAttribArray(game.position)
 
@@ -178,35 +154,6 @@ func (game *gameState) drawWireRect(rect unit.Rect, r, g, b, a float32, z float6
 	glc.DrawArrays(gl.LINE_LOOP, 0, squareWireVertexCount)
 }
 
-/*
-func (game *gameState) debugZ(glc gl.Context) {
-	var MVP goglmath.Matrix4
-	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquare)
-	glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
-
-	glc.Uniform4f(game.color, .9, .9, .9, 1) // white
-	game.setOrtho(&MVP)
-	MVP.Translate(0, 0, .1, 1) // white z=.1 front - closer to eye
-	MVP.Scale(.1, .1, 1, 1)
-	glc.UniformMatrix4fv(game.P, MVP.Data())
-	glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
-
-	p1x, p1y, p1z, p1w := MVP.Transform(0, 0, 0, 1)
-
-	glc.Uniform4f(game.color, .9, .5, .5, 1) // red
-	game.setOrtho(&MVP)
-	MVP.Translate(.05, .05, -.1, 1) // red z=-.1 back - farther from eye
-	MVP.Scale(.1, .1, 1, 1)
-	glc.UniformMatrix4fv(game.P, MVP.Data())
-	glc.DrawArrays(gl.TRIANGLES, 0, squareVertexCount)
-
-	p2x, p2y, p2z, p2w := MVP.Transform(0, 0, 0, 1)
-
-	log.Printf("white=%v,%v,%v,%v red=%v,%v,%v,%v", p1x, p1y, p1z, p1w, p2x, p2y, p2z, p2w)
-	time.Sleep(time.Second)
-}
-*/
-
 func (game *gameState) paintTex(glc gl.Context, elap time.Duration, buttonWidth, buttonHeight, scoreTop, scoreHeight, fieldTop, cannonBottom float64) {
 
 	glc.Enable(gl.BLEND)
@@ -222,59 +169,12 @@ func (game *gameState) paintTex(glc gl.Context, elap time.Duration, buttonWidth,
 
 	// draw button - fire
 
-	/*
-		glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
-		glc.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, game.bufSquareElemIndex)
-
-		// square geometry
-		elemFirst := 0
-		elemCount := squareElemIndexCount // 6
-		elemType := gl.Enum(gl.UNSIGNED_INT)
-		elemSize := 4
-
-		strideSize := 5 * 4 // 5 x 4 bytes
-		itemsPosition := 3
-		itemsTexture := 2
-		offsetPosition := 0
-		offsetTexture := itemsPosition * 4 // 3 x 4 bytes
-		glc.VertexAttribPointer(game.texPosition, itemsPosition, gl.FLOAT, false, strideSize, offsetPosition)
-		glc.VertexAttribPointer(game.texTextureCoord, itemsTexture, gl.FLOAT, false, strideSize, offsetTexture)
-
-		fireIndex := 0
-		var MVPfire goglmath.Matrix4
-		game.setOrtho(&MVPfire)
-		scaleButtonFire := buttonHeight // FIXME using square -- should use image aspect?
-		xFire := game.minX + float64(fireIndex)*buttonWidth
-		MVPfire.Translate(xFire, game.minY, 0, 1)
-		MVPfire.Scale(scaleButtonFire, scaleButtonFire, 1, 1)
-		glc.UniformMatrix4fv(game.texMVP, MVPfire.Data())
-
-		glc.BindTexture(gl.TEXTURE_2D, game.texButtonFire)
-
-		glc.DrawElements(gl.TRIANGLES, elemCount, elemType, elemFirst*elemSize)
-	*/
-
 	fireIndex := 0
 	scaleButtonFire := buttonHeight // FIXME using square -- should use image aspect?
 	xFire := game.minX + float64(fireIndex)*buttonWidth
 	game.drawImage(game.texButtonFire, xFire, game.minY, scaleButtonFire, scaleButtonFire, 0, 1, 0)
 
 	// draw button - turn
-
-	/*
-		turnIndex := 1
-		var MVPturn goglmath.Matrix4
-		game.setOrtho(&MVPturn)
-		scaleButtonTurn := buttonHeight // FIXME using square -- should use image aspect?
-		xTurn := game.minX + float64(turnIndex)*buttonWidth
-		MVPturn.Translate(xTurn, game.minY, 0, 1)
-		MVPturn.Scale(scaleButtonTurn, scaleButtonTurn, 1, 1)
-		glc.UniformMatrix4fv(game.texMVP, MVPturn.Data())
-
-		glc.BindTexture(gl.TEXTURE_2D, game.texButtonTurn)
-
-		glc.DrawElements(gl.TRIANGLES, elemCount, elemType, elemFirst*elemSize)
-	*/
 
 	turnIndex := 1
 	scaleButtonTurn := buttonHeight // FIXME using square -- should use image aspect?
@@ -289,17 +189,6 @@ func (game *gameState) paintTex(glc gl.Context, elap time.Duration, buttonWidth,
 		up := can.Team == game.playerTeam
 
 		r := unit.CannonBox(game.minX, game.maxX, float64(cannonX), fieldTop, cannonBottom, game.cannonWidth, game.cannonHeight, up)
-
-		/*
-			var MVP goglmath.Matrix4
-			game.setOrtho(&MVP)
-			MVP.Translate(r.X1, r.Y1, 0, 1)
-			MVP.Scale(unit.CannonWidth, unit.CannonHeight, 1, 1)
-			glc.UniformMatrix4fv(game.P, MVP.Data())
-			glc.BindBuffer(gl.ARRAY_BUFFER, canBuf)
-			glc.VertexAttribPointer(game.position, coordsPerVertex, gl.FLOAT, false, 0, 0)
-			glc.DrawArrays(gl.TRIANGLES, 0, cannonVertexCount)
-		*/
 
 		var upX, upY, upZ float64
 		if up {
@@ -321,17 +210,13 @@ func (game *gameState) paintTex(glc gl.Context, elap time.Duration, buttonWidth,
 
 		r := unit.MissileBox(game.minX, game.maxX, float64(miss.CoordX), y, fieldTop, cannonBottom, game.cannonWidth, game.cannonHeight, game.missileWidth, game.missileHeight, up)
 
-		var upX, upY, upZ float64
+		var upY float64
 		if up {
-			upX = 0
 			upY = 1
-			upZ = 0
 		} else {
-			upX = 0
 			upY = -1
-			upZ = 0
 		}
-		game.drawImage(game.missile, r.X1, r.Y1, game.missileWidth, game.missileHeight, upX, upY, upZ)
+		game.drawImage(game.missile, r.X1, r.Y1, game.missileWidth, game.missileHeight, 0, upY, 0)
 	}
 
 	// font
@@ -391,12 +276,12 @@ func (game *gameState) drawImage(tex gl.Texture, x, y, width, height, upX, upY, 
 	glc.VertexAttribPointer(game.texTextureCoord, itemsTexture, gl.FLOAT, false, strideSize, offsetTexture)
 
 	var MVP goglmath.Matrix4
-	game.setOrtho(&MVP)
-	MVP.Translate(x, y, 0, 1)           // MVP = T
-	MVP.Scale(width, height, 1, 1)      // MVP = T*S
-	MVP.Translate(.5, .5, 0, 1)         // translate center back
-	MVP.Rotate(0, 0, -1, upX, upY, upZ) // MVP = T*S*R
-	MVP.Translate(-.5, -.5, 0, 1)       // translate center to origin
+	game.setOrtho(&MVP)                 // 6. MVP = O
+	MVP.Translate(x, y, 0, 1)           // 5. MVP = O*T
+	MVP.Scale(width, height, 1, 1)      // 4. MVP = O*T*S
+	MVP.Translate(.5, .5, 0, 1)         // 3. MVP = O*T*S*t2 t2: restore center position
+	MVP.Rotate(0, 0, -1, upX, upY, upZ) // 2. MVP = O*T*S*t2*R
+	MVP.Translate(-.5, -.5, 0, 1)       // 1. MVP = O*T*S*t2*R*t1 t1: translate center to origin
 
 	glc.UniformMatrix4fv(game.texMVP, MVP.Data())
 

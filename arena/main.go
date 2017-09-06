@@ -148,7 +148,6 @@ SERVICE:
 
 				if m.ID == msg.ButtonTurn {
 					p := i.player
-					//p.cannonCoordX, p.cannonSpeed = future.CannonX(p.cannonCoordX, p.cannonSpeed, time.Since(p.cannonStart))
 					updateCannon(p, time.Now())
 					p.cannonSpeed = -p.cannonSpeed
 					updateWorld(&w, false)

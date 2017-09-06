@@ -7,9 +7,7 @@ import (
 )
 
 func flagBool(value *bool, name string) {
-	if exists(name) {
-		*value = true
-	}
+	*value = exists(name)
 	log.Printf("flagBool: %s = %v", name, *value)
 }
 

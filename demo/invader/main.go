@@ -63,12 +63,10 @@ type gameState struct {
 	texTextureCoord gl.Attrib
 	texSampler      gl.Uniform
 	texMVP          gl.Uniform // MVP mat4
-	//texTexture      gl.Texture
-	//texImage        *image.NRGBA
-	texButtonFire gl.Texture
-	texButtonTurn gl.Texture
-	ship          gl.Texture
-	missile       gl.Texture
+	texButtonFire   gl.Texture
+	texButtonTurn   gl.Texture
+	ship            gl.Texture
+	missile         gl.Texture
 
 	streamLaser beep.StreamSeekCloser
 
@@ -117,20 +115,6 @@ func loadSound(name string) (beep.StreamSeekCloser, error) {
 
 	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
 
-	/*
-		done := make(chan struct{})
-
-		log.Printf("loadSound: playing")
-
-		speaker.Play(beep.Seq(s, beep.Callback(func() {
-			close(done)
-		})))
-
-		<-done
-
-		log.Printf("loadSound: done")
-	*/
-
 	return s, nil
 }
 
@@ -144,7 +128,6 @@ func newGame() (*gameState, error) {
 		cannons:  map[int]*msg.Cannon{},
 	}
 
-	//sndLaser := "Electric-wash-01.wav"
 	sndLaser := "95933__robinhood76__01665-thin-laser-blast.wav"
 	var errSndLaser error
 	game.streamLaser, errSndLaser = loadSound(sndLaser)
@@ -152,90 +135,26 @@ func newGame() (*gameState, error) {
 		log.Printf("laser sound: %v", errSndLaser)
 	}
 
-	/*
-		vert, errVert := loadFull("shader.vert")
-		if errVert != nil {
-			log.Printf("load vertex shader: %v", errVert)
-			return nil, errVert
-		}
-		game.shaderVert = string(vert)
-	*/
 	if errVert := flagStr(&game.shaderVert, "shader.vert"); errVert != nil {
 		log.Printf("load vertex shader: %v", errVert)
 		return nil, errVert
 	}
 
-	/*
-		frag, errFrag := loadFull("shader.frag")
-		if errFrag != nil {
-			log.Printf("load fragment shader: %v", errFrag)
-			return nil, errFrag
-		}
-		game.shaderFrag = string(frag)
-	*/
 	if errFrag := flagStr(&game.shaderFrag, "shader.frag"); errFrag != nil {
 		log.Printf("load fragment shader: %v", errFrag)
 		return nil, errFrag
 	}
 
-	/*
-		texVert, errVert := loadFull("shader_tex.vert")
-		if errVert != nil {
-			log.Printf("load vertex shader: %v", errVert)
-			return nil, errVert
-		}
-		game.shaderTexVert = string(texVert)
-	*/
 	if errVert := flagStr(&game.shaderTexVert, "shader_tex.vert"); errVert != nil {
 		log.Printf("load vertex tex shader: %v", errVert)
 		return nil, errVert
 	}
 
-	/*
-		texFrag, errFrag := loadFull("shader_tex.frag")
-		if errFrag != nil {
-			log.Printf("load fragment shader: %v", errFrag)
-			return nil, errFrag
-		}
-		game.shaderTexFrag = string(texFrag)
-	*/
 	if errFrag := flagStr(&game.shaderTexFrag, "shader_tex.frag"); errFrag != nil {
 		log.Printf("load fragment tex shader: %v", errFrag)
 		return nil, errFrag
 	}
 
-	/*
-		imgFile := "awesomeface.png"
-		imgIn, errImg := asset.Open(imgFile)
-		if errImg != nil {
-			log.Printf("open texture image: %s: %v", imgFile, errImg)
-		}
-		img, _, errDec := image.Decode(imgIn)
-		if errDec != nil {
-			log.Printf("decode texture image: %s: %v", imgFile, errDec)
-		}
-		if img != nil {
-			log.Printf("texture image loaded: %s", imgFile)
-			switch i := img.(type) {
-			case *image.NRGBA:
-				b := i.Bounds()
-				log.Printf("nrgba image type: %s %dx%d", imgFile, b.Max.X, b.Max.Y)
-				game.texImage = i
-				flipY(imgFile, game.texImage)
-			default:
-				log.Printf("unexpected image type: %s: %v", imgFile, i.ColorModel())
-			}
-		}
-	*/
-
-	/*
-		server, errServ := loadFull("server.txt")
-		if errServ != nil {
-			log.Printf("load server: %v", errServ)
-			return nil, errServ
-		}
-		game.serverAddr = strings.TrimSpace(string(server))
-	*/
 	if errServ := flagStr(&game.serverAddr, "server.txt"); errServ != nil {
 		log.Printf("load server: %v", errServ)
 		return nil, errServ
@@ -243,7 +162,6 @@ func newGame() (*gameState, error) {
 
 	log.Printf("server: [%s]", game.serverAddr)
 
-	//tracer, errTrace := loadFull("trace.txt")
 	var tracer string
 	errTrace := flagStr(&tracer, "trace.txt")
 	if errTrace != nil {
@@ -289,17 +207,9 @@ func main() {
 	log.Print("main begin")
 
 	slowPaint := len(os.Args) > 1
-
-	/*
-		if !slowPaint {
-			_, errSlow := loadFull("slow.txt")
-			if errSlow == nil {
-				slowPaint = true
-			}
-		}
-	*/
-	flagBool(&slowPaint, "slow.txt")
-
+	if !slowPaint {
+		flagBool(&slowPaint, "slow.txt")
+	}
 	log.Printf("slowPaint: %v", slowPaint)
 
 	var paintRequests int
@@ -394,7 +304,6 @@ func main() {
 				game.playerTeam = t.Team
 				game.playerFuel = t.Fuel
 				game.updateInterval = t.Interval
-				//game.cannons = t.Cannons
 
 				game.updateLast = time.Now()
 				elap := time.Since(game.updateLast)
@@ -438,7 +347,6 @@ func main() {
 				var our, their string
 				our = strconv.Itoa(t.Scores[t.Team])
 				their = strconv.Itoa(t.Scores[1-t.Team])
-				//log.Printf("score: [%s] [%s]", our, their)
 				game.scoreOur.write(our)
 				game.scoreTheir.write(their)
 
@@ -510,7 +418,6 @@ func (game *gameState) input(press, release bool, pixelX, pixelY float32) {
 	log.Printf("input: event press=%v %f,%f (%d x %d)", press, pixelX, pixelY, game.width, game.height)
 
 	if press {
-		//x := float64(pixelX) / float64(game.width-1) * (game.maxX - game.minX) + game.minX
 		y := float64(pixelY)/float64(game.height-1)*(game.minY-game.maxY) + game.maxY
 
 		if y < (game.minY + game.buttonEdge()) {
@@ -566,22 +473,6 @@ func (game *gameState) start(glc gl.Context) {
 	game.texMVP = getUniformLocation(glc, game.programTex, "MVP")
 	game.texSampler = getUniformLocation(glc, game.programTex, "sampler")
 
-	/*
-		game.texTexture = glc.CreateTexture()
-		glc.BindTexture(gl.TEXTURE_2D, game.texTexture)
-		glc.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-		glc.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-		// for NPOT texture, only clamp to edge is supported
-		glc.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-		glc.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-		bounds := game.texImage.Bounds()
-		w := bounds.Max.X - bounds.Min.X
-		h := bounds.Max.Y - bounds.Min.Y
-		// TexImage2D(target Enum, level int, width, height int, format Enum, ty Enum, data []byte)
-		glc.TexImage2D(gl.TEXTURE_2D, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, game.texImage.Pix)
-		log.Printf("start: texture image uploaded: %dx%d", w, h)
-	*/
-
 	var errLoad error
 	game.texButtonFire, _, errLoad = loadTexture(glc, "icon-missile.png", true)
 	if errLoad != nil {
@@ -597,20 +488,6 @@ func (game *gameState) start(glc gl.Context) {
 		log.Printf("start: texture load: %v", errLoad)
 	}
 
-	/*
-		sb := shipImg.Bounds()
-		sw := sb.Max.X - sb.Min.X
-		sh := sb.Max.Y - sb.Min.Y
-		var sdmax int
-		if sw < sh {
-		   sdmax = sh
-		} else {
-		  sdmax = sw
-		}
-		cannonSize := .4
-		game.cannonWidth = cannonSize * float64(sw) / float64(sdmax)
-		game.cannonHeight = cannonSize * float64(sh) / float64(sdmax)
-	*/
 	game.cannonWidth, game.cannonHeight = unit.UnitSize(shipImg, unit.ScaleCannon)
 
 	var missImg *image.NRGBA
@@ -697,7 +574,6 @@ func (game *gameState) stop() {
 
 	glc.DeleteProgram(game.program)
 	glc.DeleteProgram(game.programTex)
-	//glc.DeleteTexture(game.texTexture)
 	glc.DeleteTexture(game.texButtonFire)
 	glc.DeleteTexture(game.texButtonTurn)
 	glc.DeleteTexture(game.ship)
@@ -729,8 +605,7 @@ func (game *gameState) buttonEdge() float64 {
 }
 
 const (
-	coordsPerVertex = 3
-	//cannonVertexCount     = 3
+	coordsPerVertex       = 3
 	squareVertexCount     = 6
 	squareWireVertexCount = 4
 )
@@ -741,13 +616,6 @@ var cannonData = f32.Bytes(binary.LittleEndian,
 	1.0, 0.0, 0.0,
 )
 
-/*
-var cannonDownData = f32.Bytes(binary.LittleEndian,
-	0.5, -1.0, 0.0,
-	1.0, 0.0, 0.0,
-	0.0, 0.0, 0.0,
-)
-*/
 var cannonDownData = f32.Bytes(binary.LittleEndian,
 	0.5, 0.0, 0.0,
 	1.0, 1.0, 0.0,
@@ -781,7 +649,6 @@ func intsToBytes(s []uint32) []byte {
 	buf := new(bytes.Buffer)
 	binary.Write(buf, binary.LittleEndian, s)
 	b := buf.Bytes()
-	//log.Printf("intsToBytes: ints=%d bytes=%d: %v", len(s), len(b), b)
 	return b
 }
 
