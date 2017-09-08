@@ -151,6 +151,8 @@ https://github.com/golang/go/issues/21396
 
 https://github.com/golang/go/issues/9985
 
+https://golang.org/cl/30019
+
 - Need way to call Android API from Go.
 
 Reverse Binding https://www.slideshare.net/takuyaueda967/mobile-apps-by-pure-go-with-reverse-binding
