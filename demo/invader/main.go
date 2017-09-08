@@ -488,7 +488,7 @@ func (game *gameState) start(glc gl.Context) {
 		log.Printf("start: texture load: %v", errLoad)
 	}
 
-	game.cannonWidth, game.cannonHeight = unit.UnitSize(shipImg, unit.ScaleCannon)
+	game.cannonWidth, game.cannonHeight = unit.BoxSize(shipImg, unit.ScaleCannon)
 
 	var missImg *image.NRGBA
 	game.missile, missImg, errLoad = loadTexture(glc, "rocket.png", true)
@@ -496,7 +496,7 @@ func (game *gameState) start(glc gl.Context) {
 		log.Printf("start: texture load: %v", errLoad)
 	}
 
-	game.missileWidth, game.missileHeight = unit.UnitSize(missImg, unit.ScaleMissile)
+	game.missileWidth, game.missileHeight = unit.BoxSize(missImg, unit.ScaleMissile)
 
 	game.bufSquareElemData = glc.CreateBuffer()
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)

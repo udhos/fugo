@@ -65,24 +65,10 @@ func request() (string, error) {
 		return "", errDest
 	}
 
-	/*
-		c, errDial := net.DialTimeout("udp", "239.1.1.1:8888", timeout)
-		if errDial != nil {
-		   return "", errDial
-		}
-	*/
-
 	conn, errListen := net.ListenUDP("udp", nil)
 	if errListen != nil {
 		return "", errListen
 	}
-
-	/*
-		conn, ok := c.(*net.UDPConn)
-		if !ok {
-		   return "", fmt.Errorf("not a UDP conn: %v", conn)
-		}
-	*/
 
 	pc := ipv4.NewPacketConn(conn)
 
@@ -103,13 +89,13 @@ func request() (string, error) {
 		return "", errWrite
 	}
 
+	log.Printf("discovery request sent to %s", discAddr)
+
 	buf := make([]byte, 1000)
 
 	if errSet := conn.SetDeadline(time.Now().Add(timeout)); errSet != nil {
 		return "", errSet
 	}
-
-	log.Printf("discovery request sent to %s", discAddr)
 
 	n, src, errRead := conn.ReadFrom(buf)
 	if errRead != nil {
@@ -156,7 +142,6 @@ func readLoop(a app.App, conn net.Conn) {
 			log.Printf("readLoop: Decode: %v", err)
 			break
 		}
-		//log.Printf("readLoop: received: %v", m)
 		a.Send(m)
 	}
 	log.Printf("readLoop: exiting")
@@ -177,7 +162,6 @@ LOOP:
 				log.Printf("writeLoop: Encode: %v", err)
 				break LOOP
 			}
-			//log.Printf("writeLoop: sent %v", m)
 		}
 	}
 	log.Printf("writeLoop: goroutine exiting")

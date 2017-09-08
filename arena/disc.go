@@ -22,9 +22,8 @@ func lanDiscovery(addr string) error {
 		return errListen
 	}
 
-	buf := make([]byte, 1000)
-
 	go func() {
+		buf := make([]byte, 1000)
 		for {
 			_, src, errRead := conn.ReadFromUDP(buf)
 			if errRead != nil {

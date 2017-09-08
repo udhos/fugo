@@ -200,7 +200,7 @@ SERVICE:
 
 func loadSize(name string, scale float64) (float64, float64, error) {
 	bogus := image.Rect(0, 0, 10, 10)
-	w, h := unit.UnitSize(bogus, scale)
+	w, h := unit.BoxSize(bogus, scale)
 
 	f, errOpen := os.Open(name)
 	if errOpen != nil {
@@ -216,7 +216,7 @@ func loadSize(name string, scale float64) (float64, float64, error) {
 		return w, h, fmt.Errorf("loadSize: %s: not NRGBA", name)
 	}
 
-	w, h = unit.UnitSize(i, scale)
+	w, h = unit.BoxSize(i, scale)
 	b := i.Bounds()
 
 	log.Printf("loadSize: %s: %vx%v => %vx%v", name, b.Max.X, b.Max.Y, w, h)

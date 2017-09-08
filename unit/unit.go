@@ -72,21 +72,9 @@ type Box interface {
 	Bounds() image.Rectangle
 }
 
-/*
-// CannonSize returns the width,height of bounding rectangle.
-func CannonSize(b Box) (float64, float64) {
-     return unitSize(.4)
-}
-
-// MissileSize returns the width,height of bounding rectangle.
-func MissileSize(b Box) (float64, float64) {
-     return unitSize(.05)
-}
-*/
-
-// UnitSize returns the width,height of bounding rectangle.
+// BoxSize returns the width,height of bounding rectangle.
 // Bounding rectangle in pixel. Resulting width,height in NDC (-1.0 to 1.0).
-func UnitSize(b Box, scale float64) (float64, float64) {
+func BoxSize(b Box, scale float64) (float64, float64) {
 	sb := b.Bounds()
 	sw := sb.Max.X - sb.Min.X
 	sh := sb.Max.Y - sb.Min.Y
