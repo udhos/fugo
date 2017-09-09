@@ -2,16 +2,21 @@
 
 Home: https://github.com/udhos/fugo
 
-    $ tar xf fugo-invader.tar.gz
-    $ cd fugo-invader
+    $ tar xf fugo-invader-0.1.tar.gz
+    $ cd fugo-invader-0.1
 
-arena: server
-invader: Binary for desktop Linux
-invader.apk: Package for Android
+Tarball contents:
+
+- arena: Server
+- invader: Client binary for desktop Linux
+- invader.apk: Client package for Android
+- assets: Game assets, required to run the Arena server
 
 Run the server:
-$ arena
+
+    $ arena
 
 Run the desktop Linux client:
-$ invader
+
+    $ invader
 
