@@ -1,6 +1,6 @@
 #!/bin/bash
 
-dir=fugo-invader-0.0
+dir=fugo-invader-0.1
 
 mkdir $dir
 
