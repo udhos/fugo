@@ -10,6 +10,7 @@ type Update struct {
 	Interval      time.Duration // notify client about update interval
 	WorldMissiles []*Missile
 	Cannons       []*Cannon
+	Bricks        []*Brick
 	Team          int // notify player about his team
 	Scores        [2]int
 	FireSound     bool

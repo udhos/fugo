@@ -24,11 +24,15 @@ type world struct {
 	input          chan inputMsg
 	updateInterval time.Duration
 	missileList    []*msg.Missile
+	brickList      []*msg.Brick
 	teams          [2]team
 	cannonWidth    float64
 	cannonHeight   float64
 	missileWidth   float64
 	missileHeight  float64
+	brickWidth     float64
+	brickHeight    float64
+	brickID        int
 }
 
 type team struct {
@@ -86,6 +90,14 @@ func main() {
 		log.Printf("collision will NOT work: %v", errMisSz)
 	}
 	log.Printf("missile: %s: %vx%v", missile, w.missileWidth, w.missileHeight)
+
+	brick := "assets/brick.png"
+	var errBrickSz error
+	w.brickWidth, w.brickHeight, errBrickSz = loadSize(brick, unit.ScaleBrick)
+	if errBrickSz != nil {
+		log.Printf("collision will NOT work: %v", errBrickSz)
+	}
+	log.Printf("brick: %s: %vx%v", brick, w.brickWidth, w.brickHeight)
 
 	if errListen := listenAndServe(&w, addr); errListen != nil {
 		log.Printf("main: listen: %v", errListen)
@@ -208,6 +220,20 @@ SERVICE:
 }
 
 func spawnBricks(w *world, p *player, now time.Time) {
+	updateCannon(p, now)
+	rows := 3
+	cols := 2
+	for r := 0; r < rows; r++ {
+		for c := 0; c < cols; c++ {
+			br := &msg.Brick{
+				ID:     w.brickID,
+				CoordX: p.cannonCoordX,
+				Team:   p.team,
+			}
+			w.brickID++
+			w.brickList = append(w.brickList, br)
+		}
+	}
 }
 
 func loadSize(name string, scale float64) (float64, float64, error) {
@@ -289,6 +315,7 @@ func sendUpdatesToPlayer(w *world, p *player, now time.Time, fire bool) {
 		Fuel:          playerFuel(p, now),
 		Interval:      w.updateInterval,
 		WorldMissiles: w.missileList,
+		Bricks:        w.brickList,
 		Team:          p.team,
 		Scores:        [2]int{w.teams[0].score, w.teams[1].score},
 		FireSound:     fire,
