@@ -20,6 +20,8 @@ const (
 	ButtonFire = 0
 	// ButtonTurn ID
 	ButtonTurn = 1
+	// ButtonBrick ID
+	ButtonBrick = 2
 )
 
 // Button message is sent from client to server.
@@ -35,6 +37,13 @@ type Missile struct {
 	Speed  float32
 	Team   int
 	Start  time.Time
+}
+
+// Brick is issued by cannons.
+type Brick struct {
+	ID     int
+	CoordX float32
+	Team   int
 }
 
 // Cannon belongs to player.
