@@ -11,3 +11,7 @@ cp invader.apk $dir
 cp RELEASE.md $dir
 
 tar czf $dir.tar.gz $dir
+
+rm -r $dir
+
+echo $dir.tar.gz
