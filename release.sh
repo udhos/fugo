@@ -9,6 +9,7 @@ cp ~/go/bin/arena $dir
 cp -a demo/invader/assets $dir
 cp invader.apk $dir
 cp RELEASE.md $dir
+cp LICENSE $dir
 
 tar czf $dir.tar.gz $dir
 
