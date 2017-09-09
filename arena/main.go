@@ -14,6 +14,7 @@ import (
 	"github.com/udhos/fugo/future"
 	"github.com/udhos/fugo/msg"
 	"github.com/udhos/fugo/unit"
+	"github.com/udhos/fugo/version"
 )
 
 type world struct {
@@ -53,6 +54,8 @@ type player struct {
 }
 
 func main() {
+
+	log.Printf("arena version " + version.Version)
 
 	var addr string
 

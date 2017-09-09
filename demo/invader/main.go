@@ -38,6 +38,7 @@ import (
 	"github.com/udhos/fugo/msg"
 	"github.com/udhos/fugo/trace"
 	"github.com/udhos/fugo/unit"
+	"github.com/udhos/fugo/version"
 )
 
 type gameState struct {
@@ -204,7 +205,7 @@ func flipY(name string, img *image.NRGBA) {
 }
 
 func main() {
-	log.Print("main begin")
+	log.Print("main begin - fugo invader version " + version.Version)
 
 	slowPaint := len(os.Args) > 1
 	if !slowPaint {
