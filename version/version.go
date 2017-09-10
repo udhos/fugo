@@ -1,3 +1,6 @@
 package version
 
-const Version = "0.1"
+const (
+	// Version is used for full client/server binary release
+	Version = "0.1"
+)

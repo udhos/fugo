@@ -95,6 +95,7 @@ type gameState struct {
 	updateLast             time.Time
 	missiles               map[int]*msg.Missile
 	cannons                map[int]*msg.Cannon
+	bricks                 map[int]*msg.Brick
 	tracer                 *trace.Trace
 }
 
@@ -324,6 +325,12 @@ func main() {
 					missiles[m.ID] = m
 				}
 				game.missiles = missiles
+
+				bricks := map[int]*msg.Brick{}
+				for _, m := range t.Bricks {
+					bricks[m.ID] = m
+				}
+				game.bricks = bricks
 
 				cannons := map[int]*msg.Cannon{}
 				for _, c := range t.Cannons {
