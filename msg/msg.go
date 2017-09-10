@@ -44,6 +44,7 @@ type Missile struct {
 type Brick struct {
 	ID     int
 	CoordX float32
+	CoordY float32
 	Team   int
 }
 

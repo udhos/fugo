@@ -69,6 +69,31 @@ func MissileBox(gameMinX, gameMaxX, x, y, fieldTop, cannonBottom, cannonWidth, c
 	}
 }
 
+// BrickBox returns bounding box.
+func BrickBox(gameMinX, gameMaxX, x, y, fieldTop, cannonBottom, cannonHeight, brickWidth, brickHeight float64, up bool) Rect {
+	minX := gameMinX
+	maxX := gameMaxX - brickWidth
+	fx := x*(maxX-minX) + minX
+	var fy float64
+	if up {
+		// upward
+		minY := cannonBottom + cannonHeight
+		maxY := fieldTop - brickHeight
+		fy = y*(maxY-minY) + minY
+	} else {
+		// downward
+		minY := cannonBottom
+		maxY := fieldTop - cannonHeight - brickHeight
+		fy = y*(minY-maxY) + maxY
+	}
+	return Rect{
+		X1: fx,
+		Y1: fy,
+		X2: fx + brickWidth,
+		Y2: fy + brickHeight,
+	}
+}
+
 // Box has a bounding image.Rectangle.
 type Box interface {
 	Bounds() image.Rectangle

@@ -119,6 +119,17 @@ func (game *gameState) paint() {
 		}
 	}
 
+	// Bricks
+	for _, br := range game.bricks {
+		up := br.Team == game.playerTeam
+
+		r := unit.BrickBox(game.minX, game.maxX, float64(br.CoordX), float64(br.CoordY), fieldTop, cannonBottom, game.cannonHeight, game.brickWidth, game.brickHeight, up)
+
+		//if game.debugBound {
+		game.drawWireRect(r, 1, 1, 1, 1, .1)
+		//}
+	}
+
 	glc.DisableVertexAttribArray(game.position)
 
 	game.paintTex(glc, elap, buttonWidth, buttonHeight, scoreTop, scoreBarHeight, fieldTop, cannonBottom) // another shader

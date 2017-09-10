@@ -221,13 +221,14 @@ SERVICE:
 
 func spawnBricks(w *world, p *player, now time.Time) {
 	updateCannon(p, now)
-	rows := 3
-	cols := 2
+	rows := 1
+	cols := 1
 	for r := 0; r < rows; r++ {
 		for c := 0; c < cols; c++ {
 			br := &msg.Brick{
 				ID:     w.brickID,
-				CoordX: p.cannonCoordX,
+				CoordX: p.cannonCoordX, // FIXME
+				CoordY: 0,              // FIXME
 				Team:   p.team,
 			}
 			w.brickID++
