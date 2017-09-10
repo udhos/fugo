@@ -1,6 +1,9 @@
 #!/bin/bash
 
-dir=fugo-invader-0.1
+version=`grep 'Version =' version/version.go | awk '{ print $3 }'`
+v=`eval echo $version`
+
+dir=fugo-invader-$v
 
 mkdir $dir
 
