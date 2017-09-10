@@ -39,6 +39,21 @@ NEXT_MISSILE:
 		mUp := m.Team == 0
 		mr := unit.MissileBox(left, right, float64(m.CoordX), mY, fieldTop, cannonBottom, w.cannonWidth, w.cannonHeight, w.missileWidth, w.missileHeight, mUp)
 
+		for j, b := range w.brickList {
+			if m.Team == b.Team {
+				continue
+			}
+			bUp := b.Team == 0
+			br := unit.BrickBox(left, right, float64(b.CoordX), float64(b.CoordY), fieldTop, cannonBottom, w.cannonHeight, w.brickWidth, w.brickHeight, bUp)
+			if intersect(mr, br) {
+				removeMissile(w, i)
+				removeBrick(w, j)
+				i--
+				hit = true
+				continue NEXT_MISSILE
+			}
+		}
+
 		for _, p := range w.playerTab {
 			if p.cannonLife <= 0 {
 				continue

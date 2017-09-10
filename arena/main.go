@@ -276,6 +276,14 @@ func removeMissile(w *world, i int) {
 	w.missileList = w.missileList[:last]
 }
 
+func removeBrick(w *world, i int) {
+	last := len(w.brickList) - 1
+	if i < last {
+		w.brickList[i] = w.brickList[last]
+	}
+	w.brickList = w.brickList[:last]
+}
+
 func updateWorld(w *world, fire bool) {
 	now := time.Now()
 
