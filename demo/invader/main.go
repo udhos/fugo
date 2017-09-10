@@ -497,26 +497,30 @@ func (game *gameState) start(glc gl.Context) {
 	game.ship, shipImg, errLoad = loadTexture(glc, "ship.png", true)
 	if errLoad != nil {
 		log.Printf("start: texture load: %v", errLoad)
+		game.cannonWidth, game.cannonHeight = unit.ScaleCannon, unit.ScaleCannon
+	} else {
+		game.cannonWidth, game.cannonHeight = unit.BoxSize(shipImg, unit.ScaleCannon)
 	}
-
-	game.cannonWidth, game.cannonHeight = unit.BoxSize(shipImg, unit.ScaleCannon)
 
 	var missImg *image.NRGBA
 	game.missile, missImg, errLoad = loadTexture(glc, "rocket.png", true)
 	if errLoad != nil {
 		log.Printf("start: texture load: %v", errLoad)
+		game.missileWidth, game.missileHeight = unit.ScaleMissile, unit.ScaleMissile
+	} else {
+		game.missileWidth, game.missileHeight = unit.BoxSize(missImg, unit.ScaleMissile)
 	}
-
-	game.missileWidth, game.missileHeight = unit.BoxSize(missImg, unit.ScaleMissile)
 
 	br := "brick.png"
 	var brickImg *image.NRGBA
 	game.brick, brickImg, errLoad = loadTexture(glc, br, true)
 	if errLoad != nil {
 		log.Printf("start: texture load: %v", errLoad)
+		game.brickWidth, game.brickHeight = unit.ScaleBrick, unit.ScaleBrick
+	} else {
+		game.brickWidth, game.brickHeight = unit.BoxSize(brickImg, unit.ScaleBrick)
 	}
-	game.brickWidth, game.brickHeight = unit.BoxSize(brickImg, unit.ScaleBrick)
-	log.Printf("brick: %s scale=%v =>%vx%v", br, unit.ScaleBrick, game.brickWidth, game.brickHeight)
+	log.Printf("brick: %s scale=%v => %vx%v", br, unit.ScaleBrick, game.brickWidth, game.brickHeight)
 
 	game.bufSquareElemData = glc.CreateBuffer()
 	glc.BindBuffer(gl.ARRAY_BUFFER, game.bufSquareElemData)
