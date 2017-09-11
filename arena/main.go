@@ -178,6 +178,7 @@ SERVICE:
 					}
 					playerFuelConsume(i.player, now, 2)
 					spawnBricks(&w, i.player, now)
+					updateWorld(&w, true)
 					continue SERVICE
 				}
 

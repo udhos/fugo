@@ -230,6 +230,15 @@ func (game *gameState) paintTex(glc gl.Context, elap time.Duration, buttonWidth,
 		game.drawImage(game.missile, r.X1, r.Y1, game.missileWidth, game.missileHeight, 0, upY, 0)
 	}
 
+	// Bricks
+	for _, br := range game.bricks {
+		up := br.Team == game.playerTeam
+
+		r := unit.BrickBox(game.minX, game.maxX, float64(br.CoordX), float64(br.CoordY), fieldTop, cannonBottom, game.cannonHeight, game.brickWidth, game.brickHeight, up)
+
+		game.drawImage(game.brick, r.X1, r.Y1, game.brickWidth, game.brickHeight, 0, 1, 0)
+	}
+
 	// font
 
 	var MVPfont goglmath.Matrix4
