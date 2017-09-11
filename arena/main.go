@@ -221,14 +221,19 @@ SERVICE:
 
 func spawnBricks(w *world, p *player, now time.Time) {
 	updateCannon(p, now)
-	rows := 1
-	cols := 1
+	rows := 2
+	cols := 3
+	wallWidth := float64(cols) * w.brickWidth
+	maxX := 1.0 - wallWidth
+	wallX := float64(p.cannonCoordX) * maxX
 	for r := 0; r < rows; r++ {
+		y := float64(r) * w.brickHeight
 		for c := 0; c < cols; c++ {
+			x := wallX + float64(c)*w.brickWidth
 			br := &msg.Brick{
 				ID:     w.brickID,
-				CoordX: p.cannonCoordX, // FIXME
-				CoordY: 0,              // FIXME
+				CoordX: float32(x),
+				CoordY: float32(y),
 				Team:   p.team,
 			}
 			w.brickID++
