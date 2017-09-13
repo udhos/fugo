@@ -33,6 +33,7 @@ func lanDiscovery(addr string) error {
 			_, errWrite := conn.WriteTo([]byte(addr), src)
 			if errWrite != nil {
 				log.Printf("discovery write error to %v: %v", src, errWrite)
+				continue
 			}
 			log.Printf("discovery: replied %s to %v", addr, src)
 		}
