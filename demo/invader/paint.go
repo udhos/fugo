@@ -125,9 +125,9 @@ func (game *gameState) paint() {
 
 		r := unit.BrickBox(game.minX, game.maxX, float64(br.CoordX), float64(br.CoordY), fieldTop, cannonBottom, game.cannonHeight, game.brickWidth, game.brickHeight, up)
 
-		//if game.debugBound {
-		game.drawWireRect(r, 1, 1, 1, 1, .1)
-		//}
+		if game.debugBound {
+			game.drawWireRect(r, 1, 1, 1, 1, .1)
+		}
 	}
 
 	glc.DisableVertexAttribArray(game.position)

@@ -113,7 +113,7 @@ func main() {
 	cannonID := 0
 
 	tickerUpdate := time.NewTicker(w.updateInterval)
-	tickerCollision := time.NewTicker(250 * time.Millisecond)
+	tickerCollision := time.NewTicker(100 * time.Millisecond)
 
 	log.Printf("main: entering service loop")
 SERVICE:

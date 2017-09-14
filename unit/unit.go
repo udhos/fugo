@@ -10,7 +10,7 @@ const (
 	// ScaleMissile missile scale
 	ScaleMissile = .15
 	// ScaleBrick brick scale
-	ScaleBrick = .06
+	ScaleBrick = .08
 )
 
 // Rect is bounding box.
