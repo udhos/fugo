@@ -72,13 +72,16 @@ type gameState struct {
 
 	streamLaser beep.StreamSeekCloser
 
-	cannonWidth   float64
-	cannonHeight  float64
-	missileWidth  float64
-	missileHeight float64
-	brickWidth    float64
-	brickHeight   float64
-	debugBound    bool
+	cannonWidth       float64
+	cannonHeight      float64
+	missileWidth      float64
+	missileHeight     float64
+	brickWidth        float64
+	brickHeight       float64
+	deviceBrickWidth  float64
+	deviceBrickHeight float64
+	deviceBrickResize bool
+	debugBound        bool
 
 	atlas      *fontAtlas
 	t1         *fontText
@@ -364,6 +367,12 @@ func main() {
 				if t.FireSound {
 					playLaser(game)
 				}
+
+				// FIXME need better place for this send resize hook
+				if game.deviceBrickResize {
+					game.serverOutput <- &msg.Resize{DeviceBrickWidth: game.deviceBrickWidth, DeviceBrickHeight: game.deviceBrickHeight}
+					game.deviceBrickResize = false
+				}
 			}
 		}
 
@@ -416,6 +425,14 @@ func (game *gameState) resize(w, h int) {
 	}
 
 	log.Printf("resize: %v,%v,%v,%v", game.minX, game.maxX, game.minY, game.maxY)
+
+	devBrickW := game.brickWidth / (game.maxX - game.minX)
+	devBrickH := game.brickHeight / (game.maxY - game.minY)
+	if devBrickW != game.deviceBrickWidth || devBrickH != game.deviceBrickHeight {
+		game.deviceBrickWidth = devBrickW
+		game.deviceBrickHeight = devBrickH
+		game.deviceBrickResize = true
+	}
 
 	glc := game.gl // shortcut
 	if glc == nil {

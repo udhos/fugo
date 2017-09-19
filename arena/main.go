@@ -46,15 +46,17 @@ type inputMsg struct {
 }
 
 type player struct {
-	conn         net.Conn
-	output       chan msg.Update
-	fuelStart    time.Time
-	cannonStart  time.Time
-	cannonSpeed  float32
-	cannonCoordX float32
-	cannonLife   float32
-	cannonID     int
-	team         int
+	conn              net.Conn
+	output            chan msg.Update
+	fuelStart         time.Time
+	cannonStart       time.Time
+	cannonSpeed       float32
+	cannonCoordX      float32
+	cannonLife        float32
+	cannonID          int
+	team              int
+	deviceBrickWidth  float64
+	deviceBrickHeight float64
 }
 
 func main() {
@@ -156,6 +158,9 @@ SERVICE:
 			switch m := i.msg.(type) {
 			case *msg.Resize:
 				log.Printf("input resize: %v", m)
+				p := i.player
+				p.deviceBrickWidth = m.DeviceBrickWidth
+				p.deviceBrickHeight = m.DeviceBrickHeight
 			case *msg.Button:
 				log.Printf("input button: %v", m)
 

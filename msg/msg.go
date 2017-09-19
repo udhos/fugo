@@ -49,6 +49,8 @@ func (b *Button) MsgType() int {
 
 // Resize message is sent from client to server.
 type Resize struct {
+	DeviceBrickWidth  float64
+	DeviceBrickHeight float64
 }
 
 // MsgType returns MsgTypeResize
