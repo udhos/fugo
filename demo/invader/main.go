@@ -91,7 +91,7 @@ type gameState struct {
 	shaderTexVert          string
 	shaderTexFrag          string
 	serverAddr             string
-	serverOutput           chan msg.Button
+	serverOutput           chan msg.Msg
 	playerFuel             float32
 	playerTeam             int
 	updateInterval         time.Duration
@@ -188,7 +188,7 @@ func newGame() (*gameState, error) {
 	game.updateInterval = 2 * time.Second
 	game.updateLast = time.Now()
 
-	game.serverOutput = make(chan msg.Button)
+	game.serverOutput = make(chan msg.Msg)
 
 	return game, nil
 }
@@ -226,8 +226,8 @@ func main() {
 		return
 	}
 
-	gob.Register(msg.Update{})
-	gob.Register(msg.Button{})
+	gob.Register(&msg.Button{})
+	gob.Register(&msg.Resize{})
 
 	app.Main(func(a app.App) {
 		log.Print("app.Main begin")
@@ -435,7 +435,7 @@ func (game *gameState) input(press, release bool, pixelX, pixelY float32) {
 			// might hit button
 			pixelsPerButton := float32(game.width) / float32(buttons)
 			b := pixelX / pixelsPerButton
-			game.serverOutput <- msg.Button{ID: int(b)}
+			game.serverOutput <- &msg.Button{ID: int(b)}
 		}
 	}
 }

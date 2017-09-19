@@ -42,7 +42,7 @@ type team struct {
 
 type inputMsg struct {
 	player *player
-	msg    interface{}
+	msg    msg.Msg
 }
 
 type player struct {
@@ -154,7 +154,9 @@ SERVICE:
 			//log.Printf("input: %v", i)
 
 			switch m := i.msg.(type) {
-			case msg.Button:
+			case *msg.Resize:
+				log.Printf("input resize: %v", m)
+			case *msg.Button:
 				log.Printf("input button: %v", m)
 
 				if i.player.cannonLife <= 0 {
@@ -365,8 +367,8 @@ func listenAndServe(w *world, addr string) error {
 		return fmt.Errorf("listenAndServe: %s: %v", addr, errListen)
 	}
 
-	gob.Register(msg.Update{})
-	gob.Register(msg.Button{})
+	gob.Register(&msg.Button{})
+	gob.Register(&msg.Resize{})
 
 	go func() {
 		for {
@@ -400,7 +402,7 @@ func connHandler(w *world, conn *net.TCPConn) {
 		// copy from socket into input channel
 		dec := gob.NewDecoder(conn)
 		for {
-			var m msg.Button
+			var m msg.Msg
 			if err := dec.Decode(&m); err != nil {
 				log.Printf("handler: Decode: %v", err)
 				break
