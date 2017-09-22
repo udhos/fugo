@@ -211,6 +211,44 @@ func flipY(name string, img *image.NRGBA) {
 	log.Printf("image y-flipped: %s", name)
 }
 
+func loadID() {
+	wd, errWd := os.Getwd()
+	log.Printf("loadID: dir=%s error=%v", wd, errWd)
+	idFile := "invader_id.txt"
+	f, errOpen := os.Open(idFile)
+	if errOpen != nil {
+		log.Printf("loadID: %s: %v", idFile, errOpen)
+		return
+	}
+	defer f.Close()
+	buf, errRead := ioutil.ReadAll(f)
+	if errRead != nil {
+		log.Printf("loadID: %s: %v", idFile, errRead)
+		return
+	}
+	id := string(buf)
+	log.Printf("loadID: id=%s", id)
+}
+
+func saveID() {
+	wd, errWd := os.Getwd()
+	log.Printf("saveID: dir=%s error=%v", wd, errWd)
+	idFile := "invader_id.txt"
+	f, errOpen := os.Create(idFile)
+	if errOpen != nil {
+		log.Printf("saveID: %s: %v", idFile, errOpen)
+		return
+	}
+	defer f.Close()
+	id := "3"
+	_, errWrite := f.WriteString(id)
+	if errWrite != nil {
+		log.Printf("saveID: %s: %v", idFile, errWrite)
+		return
+	}
+	log.Printf("saveID: id=%s", id)
+}
+
 func main() {
 	log.Print("main begin - fugo invader version " + version.Version)
 
@@ -231,6 +269,9 @@ func main() {
 
 	gob.Register(&msg.Button{})
 	gob.Register(&msg.Resize{})
+
+	loadID()
+	saveID()
 
 	app.Main(func(a app.App) {
 		log.Print("app.Main begin")
