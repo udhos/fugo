@@ -139,6 +139,15 @@ b) The Invader application will try to connect to the Arena server specified in 
 
 The TCP endpoint hard-coded in the file server.txt is included in the APK file. You will need to rebuild and redeploy the application to change it. This option is useful for deploying public Arena server on the Internet.
 
+## INVADER runtime flags
+
+You can tweak the app behavior by changing these files before gomobile build:
+
+demo/invader/assets/box.txt    - bool (file_exists=true)
+demo/invader/assets/server.txt - string host:port (TCP endpoint for server)
+demo/invader/assets/slow.txt   - bool (file_exists=true)
+demo/invader/assets/trace.txt  - string host:port (UDP endpoint for logs)
+
 ## KNOWN ISSUES
 
 - Need way to hide Android status bar.
