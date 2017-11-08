@@ -4,18 +4,20 @@
 # fugo
 fugo - fun with Go. gomobile OpenGL game
 
-# Table of Contents
+Table of Contents
+=================
 
-* [QUICK START](#quick-start)
+  * [QUICK START](#quick-start)
   * [Requirements](#requirements)
   * [Building the INVADER application](#building-the-invader-application)
   * [Building the ARENA server](#building-the-arena-server)
   * [How does the INVADER application locate the ARENA server?](#how-does-the-invader-application-locate-the-arena-server)
-* [KNOWN ISSUES](#known-issues)
+  * [INVADER runtime flags](#invader-runtime-flags)
+  * [KNOWN ISSUES](#known-issues)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
 
-# QUICK START
+## QUICK START
 
 Recipe:
 
