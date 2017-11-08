@@ -7,7 +7,7 @@ Home: https://github.com/udhos/fugo
 
 Tarball contents:
 
-- arena: Server
+- arena: Server binary for desktop Linux
 - invader: Client binary for desktop Linux
 - invader.apk: Client package for Android
 - assets: Game assets, required to run the Arena server
