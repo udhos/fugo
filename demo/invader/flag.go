@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"strings"
 
 	"golang.org/x/mobile/asset"
 )
@@ -17,8 +18,8 @@ func flagStr(value *string, name string) error {
 		log.Printf("flagStr: %s: %v", name, errLoad)
 		return errLoad
 	}
-	*value = string(b)
-	log.Printf("flagStr: %s = %v", name, *value)
+	*value = strings.TrimSpace(string(b))
+	log.Printf("flagStr: %s = [%v]", name, *value)
 	return nil
 }
 
