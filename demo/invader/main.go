@@ -14,7 +14,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/udhos/goglmath"
@@ -168,7 +167,6 @@ func newGame() (*gameState, error) {
 	if errTrace != nil {
 		log.Printf("trace file: %v", errTrace)
 	} else {
-		tracer = strings.TrimSpace(tracer)
 		log.Printf("tracer: [%s]", tracer)
 		game.tracer, errTrace = trace.New(tracer)
 		if errTrace != nil {
