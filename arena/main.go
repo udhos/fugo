@@ -157,22 +157,19 @@ SERVICE:
 					continue SERVICE
 				}
 
+				now := time.Now()
+				fuel := playerFuel(i.player, now)
+
 				if m.ID != msg.ButtonFire {
 					continue SERVICE // non-fire button
 				}
 
-				fuel := playerFuel(i.player)
 				if fuel < 1 {
 					continue SERVICE // not enough fuel
 				}
 
-				if fuel >= 10 {
-					playerFuelSet(i.player, time.Now(), 9)
-				} else {
-					playerFuelSet(i.player, time.Now(), fuel-1)
-				}
+				playerFuelConsume(i.player, now, 1)
 
-				now := time.Now()
 				updateCannon(i.player, now)
 				miss1 := &msg.Missile{
 					ID:     missileID,
@@ -184,7 +181,7 @@ SERVICE:
 				missileID++
 				w.missileList = append(w.missileList, miss1)
 
-				log.Printf("input fire - fuel was=%v is=%v missiles=%d", fuel, playerFuel(i.player), len(w.missileList))
+				log.Printf("input fire - fuel was=%v is=%v missiles=%d", fuel, playerFuel(i.player, now), len(w.missileList))
 
 				updateWorld(&w, true)
 			}
@@ -258,21 +255,26 @@ func updateWorld(w *world, fire bool) {
 	}
 
 	for _, p := range w.playerTab {
-		sendUpdatesToPlayer(w, p, fire)
+		sendUpdatesToPlayer(w, p, now, fire)
 	}
 }
 
-func playerFuel(p *player) float32 {
-	return future.Fuel(0, time.Since(p.fuelStart))
+func playerFuel(p *player, now time.Time) float32 {
+	return future.Fuel(0, now.Sub(p.fuelStart))
 }
 
 func playerFuelSet(p *player, now time.Time, fuel float32) {
 	p.fuelStart = now.Add(-time.Duration(float32(time.Second) * fuel / future.FuelRechargeRate))
 }
 
-func sendUpdatesToPlayer(w *world, p *player, fire bool) {
+func playerFuelConsume(p *player, now time.Time, amount float32) {
+	fuel := playerFuel(p, now)
+	playerFuelSet(p, now, fuel-amount)
+}
+
+func sendUpdatesToPlayer(w *world, p *player, now time.Time, fire bool) {
 	update := msg.Update{
-		Fuel:          playerFuel(p),
+		Fuel:          playerFuel(p, now),
 		Interval:      w.updateInterval,
 		WorldMissiles: w.missileList,
 		Team:          p.team,
