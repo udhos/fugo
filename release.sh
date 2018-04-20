@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=`grep 'Version =' version/version.go | awk '{ print $3 }'`
+version=`grep 'const Version =' version/version.go | awk '{ print $4 }'`
 v=`eval echo $version`
 
 dir=fugo-invader-$v
