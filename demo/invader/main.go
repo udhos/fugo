@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -241,7 +242,8 @@ func saveID() {
 }
 
 func main() {
-	log.Print("main begin - fugo invader version " + version.Version)
+	log.Print("main begin")
+	log.Print("fugo invader version " + version.Version + " runtime " + runtime.Version())
 
 	slowPaint := len(os.Args) > 1
 	if !slowPaint {

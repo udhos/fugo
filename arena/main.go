@@ -9,6 +9,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/udhos/fugo/future"
@@ -55,7 +56,7 @@ type player struct {
 
 func main() {
 
-	log.Printf("arena version " + version.Version)
+	log.Printf("arena version " + version.Version + " runtime " + runtime.Version())
 
 	var addr string
 
