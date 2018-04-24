@@ -12,8 +12,8 @@
 	<uses-permission android:name="android.permission.INTERNET" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
-	<application android:label="invader" android:debuggable="true">
-	<activity android:name="Invader"
+	<application android:name="Invader" android:label="invader" android:debuggable="true">
+	<activity android:name="org.golang.app.GoNativeActivity"
 		android:label="invader"
 		android:configChanges="orientation|keyboardHidden">
 		<meta-data android:name="android.app.lib_name" android:value="invader" />
