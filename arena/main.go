@@ -10,6 +10,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"sync/atomic"
 	"time"
 
 	"github.com/udhos/fugo/future"
@@ -30,6 +31,7 @@ type world struct {
 	cannonHeight   float64
 	missileWidth   float64
 	missileHeight  float64
+	countConn      int32
 }
 
 type team struct {
@@ -319,7 +321,8 @@ func listenAndServe(w *world, addr string) error {
 		for {
 			conn, err := listener.Accept()
 			if err != nil {
-				log.Printf("accept on TCP %s: %s", addr, err)
+				log.Printf("count=%d accept on TCP %s: %s", atomic.LoadInt32(&w.countConn), addr, err)
+				conn.Close()
 				continue
 			}
 			c, _ := conn.(*net.TCPConn)
@@ -331,9 +334,14 @@ func listenAndServe(w *world, addr string) error {
 }
 
 func connHandler(w *world, conn *net.TCPConn) {
-	log.Printf("handler for connection %v", conn.RemoteAddr())
+	count := atomic.AddInt32(&w.countConn, 1)
+	log.Printf("count=%d connHandler %v", count, conn.RemoteAddr())
 
-	defer conn.Close()
+	defer func() {
+		c := atomic.AddInt32(&w.countConn, -1)
+		log.Printf("count=%d connHandler exiting: %v", c, conn.RemoteAddr())
+		conn.Close()
+	}()
 
 	p := &player{
 		conn:   conn,
