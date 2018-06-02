@@ -152,13 +152,17 @@ You can tweak the app behavior by changing these files before gomobile build:
 
 ## KNOWN ISSUES
 
-- Need way to hide Android status bar.
+- Need way to hide Android status bar. Fixed: add the theme below to AndroidManifest.xml
+
+    <activity android:name="org.golang.app.GoNativeActivity"
+        android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+    </activity>
 
 https://github.com/golang/go/issues/12766
 
 https://github.com/golang/go/issues/21396
 
-- Need way to set Android app icon.
+- Need way to set Android app icon. Fixed: add assets/icon.png
 
 https://github.com/golang/go/issues/9985
 
