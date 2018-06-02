@@ -154,6 +154,8 @@ You can tweak the app behavior by changing these files before gomobile build:
 
 - Need way to hide Android status bar. Fixed: add the theme below to AndroidManifest.xml
 
+Add this to AndroidManifest.xml:
+
     <activity android:name="org.golang.app.GoNativeActivity"
         android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
     </activity>
