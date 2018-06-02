@@ -1,3 +1,4 @@
 package version
 
-const Version = "0.2"
+// Version is the game version.
+const Version = "0.3"
