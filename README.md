@@ -152,7 +152,7 @@ You can tweak the app behavior by changing these files before gomobile build:
 
 ## KNOWN ISSUES
 
-- Need way to hide Android status bar. Fixed: add the theme below to AndroidManifest.xml
+### Need way to hide Android status bar. Fixed: add the theme below to AndroidManifest.xml
 
 Add this to AndroidManifest.xml:
 
@@ -164,19 +164,38 @@ https://github.com/golang/go/issues/12766
 
 https://github.com/golang/go/issues/21396
 
-- Need way to set Android app icon. Fixed: add assets/icon.png
+### Need way to set Android app icon. Fixed: add assets/icon.png
 
 https://github.com/golang/go/issues/9985
 
 https://golang.org/cl/30019
 
-- Need way to call Android API from Go.
+### Need way to call Android API from Go.
 
 Reverse Binding https://www.slideshare.net/takuyaueda967/mobile-apps-by-pure-go-with-reverse-binding
 
 slides 65-67 from https://pt.slideshare.net/takuyaueda967/go-for-mobile-games
 
-RunOnJVM https://gist.github.com/tenntenn/aae3d14d0df4884ac4e7
+#### RunOnJVM
+
+RunOnJVM added to gomobile:
+
+- https://github.com/golang/go/issues/26815 
+
+- https://golang.org/cl/127758
+
+Old info on RunOnJVM: https://gist.github.com/tenntenn/aae3d14d0df4884ac4e7
+
+## References
+
+### Just port a Golang game to Android
+
+https://dev.to/ntoooop/just-port-a-golang-game-to-android--3a9f
+
+### Korok Game Engine
+
+https://korok.io/
+
 
 --xx--
 
