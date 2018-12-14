@@ -56,7 +56,10 @@ func uploadImage(glc gl.Context, name string, i *image.NRGBA, yflip bool) (gl.Te
 	bounds := i.Bounds()
 	w := bounds.Max.X - bounds.Min.X
 	h := bounds.Max.Y - bounds.Min.Y
-	glc.TexImage2D(gl.TEXTURE_2D, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, i.Pix)
+
+	// https://godoc.org/golang.org/x/mobile/gl
+	// TexImage2D(target Enum, level int, internalFormat int, width, height int, format Enum, ty Enum, data []byte)
+	glc.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, gl.RGBA, gl.UNSIGNED_BYTE, i.Pix)
 
 	log.Printf("texture image uploaded: %s %dx%d", name, w, h)
 
