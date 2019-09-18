@@ -10,3 +10,5 @@ require (
 	golang.org/x/mobile v0.0.0-20181130133120-ca3c58166ed8
 	golang.org/x/net v0.0.0-20181213202711-891ebc4b82d6
 )
+
+go 1.13

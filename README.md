@@ -41,7 +41,7 @@ Download Android Studio - https://developer.android.com/studio
 
 Unzip Android Studio:
 
-    $ unzip ~/Downloads/android-studio-ide-162.4069837-linux.zip
+    $ tar xf /tmp/android-studio-ide-191.5791312-linux.tar.gz
 
 Run Android Studio:
 
@@ -51,23 +51,24 @@ Select: Configure -> SDK Manager -> SDK Tools -> NDK
 
 Click the Apply button.
 
-Then point the env var NDK to your ndk-bundle. For example:
+Define SDK env vars. For example:
 
-    $ echo 'export NDK=$HOME/Android/Sdk/ndk-bundle' >> ~/.profile
-    $ . ~/.profile
+    export ANDROID_HOME=~/Android/Sdk
+    export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/20.0.5594570 ;# watch out the version
 
 3\. Install gomobile
 
 Recipe:
 
     go get golang.org/x/mobile/cmd/gomobile
-    gomobile init -ndk $NDK
+    gomobile version
+    #gomobile init -ndk $NDK ;# no longer used?
 
 4\. Install OpenGL dev libs
 
 On Ubuntu you will need these:
 
-    sudo apt-get install libegl1-mesa-dev libgles2-mesa-dev libx11-dev
+    sudo apt install libegl1-mesa-dev libgles2-mesa-dev libx11-dev
 
 5\. Install alsa sound dev libs
 
@@ -151,6 +152,10 @@ You can tweak the app behavior by changing these files before gomobile build:
     demo/invader/assets/trace.txt  - string host:port (UDP endpoint for logs)
 
 ## KNOWN ISSUES
+
+### x/mobile: build failing when using go modules
+
+https://github.com/golang/go/issues/27234
 
 ### Need way to hide Android status bar. Fixed: add the theme below to AndroidManifest.xml
 
